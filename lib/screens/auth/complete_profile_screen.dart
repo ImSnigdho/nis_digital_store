@@ -1,0 +1,198 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../config/theme.dart';
+import '../../providers/auth_provider.dart';
+import '../home/home_screen.dart';
+
+class CompleteProfileScreen extends StatefulWidget {
+  const CompleteProfileScreen({super.key});
+
+  @override
+  State<CompleteProfileScreen> createState() => _CompleteProfileScreenState();
+}
+
+class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _phoneController;
+  late TextEditingController _discordController;
+  late TextEditingController _nameController;
+  String _selectedCountry = 'BD';
+  bool _isLoading = false;
+
+  final List<String> _countries = [
+    'BD', 'US', 'UK', 'CA', 'AU', 'IN', 'PK', 'SG', 'AE'
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    final auth = context.read<AuthProvider>();
+    final user = auth.user;
+    final profile = auth.profile;
+    
+    _nameController = TextEditingController(
+      text: profile?.fullName ?? user?.userMetadata?['full_name'] ?? '',
+    );
+    _phoneController = TextEditingController(text: profile?.phone ?? '');
+    _discordController = TextEditingController(text: profile?.discordUsername ?? '');
+    _selectedCountry = profile?.country ?? 'BD';
+  }
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _discordController.dispose();
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    final auth = context.read<AuthProvider>();
+    
+    // Create updated profile
+    final currentProfile = auth.profile;
+    if (currentProfile == null) return;
+
+    final updatedProfile = currentProfile.copyWith(
+      fullName: _nameController.text.trim(),
+      phone: _phoneController.text.trim(),
+      discordUsername: _discordController.text.trim(),
+      country: _selectedCountry,
+    );
+
+    try {
+      await auth.updateProfile(updatedProfile);
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating profile: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final avatarUrl = auth.profile?.avatarUrl ?? auth.user?.userMetadata?['avatar_url'];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Complete Your Profile'),
+        automaticallyImplyLeading: false,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text(
+                  'Just a few more details to get started!',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+                ),
+                const SizedBox(height: 32),
+                
+                // Avatar
+                CircleAvatar(
+                  radius: 50,
+                  backgroundColor: AppColors.surface,
+                  backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                  child: avatarUrl == null
+                      ? const Icon(Icons.person, size: 50, color: AppColors.textSecondary)
+                      : null,
+                ),
+                const SizedBox(height: 32),
+
+                // Name
+                TextFormField(
+                  controller: _nameController,
+                  style: const TextStyle(color: AppColors.textColor),
+                  decoration: const InputDecoration(
+                    labelText: 'Full Name',
+                    prefixIcon: Icon(Icons.person_outline),
+                  ),
+                  validator: (v) => v!.isEmpty ? 'Name is required' : null,
+                ),
+                const SizedBox(height: 16),
+
+                // Phone
+                TextFormField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  style: const TextStyle(color: AppColors.textColor),
+                  decoration: const InputDecoration(
+                    labelText: 'Phone Number (Required)',
+                    prefixIcon: Icon(Icons.phone_outlined),
+                  ),
+                  validator: (v) => v!.isEmpty ? 'Phone number is required' : null,
+                ),
+                const SizedBox(height: 16),
+
+                // Discord
+                TextFormField(
+                  controller: _discordController,
+                  style: const TextStyle(color: AppColors.textColor),
+                  decoration: const InputDecoration(
+                    labelText: 'Discord Username (Optional)',
+                    prefixIcon: Icon(Icons.discord),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Country Dropdown
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedCountry,
+                  decoration: const InputDecoration(
+                    labelText: 'Country',
+                    prefixIcon: Icon(Icons.public),
+                  ),
+                  dropdownColor: AppColors.surface,
+                  style: const TextStyle(color: AppColors.textColor),
+                  items: _countries.map((c) {
+                    return DropdownMenuItem(
+                      value: c,
+                      child: Text(c),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() => _selectedCountry = val);
+                    }
+                  },
+                ),
+                const SizedBox(height: 40),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _submit,
+                    child: _isLoading
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Text('Complete Setup'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
