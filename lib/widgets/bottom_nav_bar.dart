@@ -24,9 +24,9 @@ class CustomBottomNavBar extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.surface.withValues(alpha: 0.85),
-            border: const Border(
-              top: BorderSide(color: AppColors.glassBorder, width: 0.5),
+            color: AppColors.of(context).surface.withValues(alpha: 0.85),
+            border: Border(
+              top: BorderSide(color: AppColors.of(context).glassBorder, width: 0.5),
             ),
           ),
           child: SafeArea(
@@ -35,12 +35,13 @@ class CustomBottomNavBar extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildNavItem(0, Icons.home_rounded, 'Home'),
-                  _buildNavItem(1, Icons.favorite_rounded, 'Wishlist',
+                  _buildNavItem(context, 0, Icons.home_outlined, 'Home'),
+                  _buildNavItem(context, 1, Icons.shopping_bag_outlined, 'Products'),
+                  _buildNavItem(context, 2, Icons.favorite_outline, 'Wishlist',
                       badgeCount: wishlistCount),
-                  _buildNavItem(2, Icons.shopping_cart_rounded, 'Cart',
+                  _buildNavItem(context, 3, Icons.shopping_cart_outlined, 'Cart',
                       badgeCount: cartCount),
-                  _buildNavItem(3, Icons.person_rounded, 'Profile'),
+                  _buildNavItem(context, 4, Icons.person_outline, 'Profile'),
                 ],
               ),
             ),
@@ -50,13 +51,13 @@ class CustomBottomNavBar extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label,
+  Widget _buildNavItem(BuildContext context, int index, IconData icon, String label,
       {int badgeCount = 0}) {
     final isSelected = currentIndex == index;
 
     Widget iconWidget = Icon(
       icon,
-      color: isSelected ? AppColors.primary : AppColors.textSecondary,
+      color: isSelected ? AppColors.of(context).primary : AppColors.of(context).textSecondary,
       size: 24,
     );
 
@@ -66,8 +67,8 @@ class CustomBottomNavBar extends StatelessWidget {
           badgeCount.toString(),
           style: const TextStyle(color: Colors.white, fontSize: 10),
         ),
-        badgeStyle: const badges.BadgeStyle(
-          badgeColor: AppColors.primary,
+        badgeStyle: badges.BadgeStyle(
+          badgeColor: AppColors.of(context).primary,
           padding: EdgeInsets.all(4),
         ),
         child: iconWidget,
@@ -79,10 +80,10 @@ class CustomBottomNavBar extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.15)
+              ? AppColors.of(context).primary.withValues(alpha: 0.15)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
         ),
@@ -90,11 +91,11 @@ class CustomBottomNavBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             iconWidget,
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                color: isSelected ? AppColors.of(context).primary : AppColors.of(context).textSecondary,
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
               ),
@@ -105,3 +106,4 @@ class CustomBottomNavBar extends StatelessWidget {
     );
   }
 }
+

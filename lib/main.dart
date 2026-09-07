@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'config/supabase_config.dart';
 import 'config/theme.dart';
 import 'providers/auth_provider.dart';
@@ -65,9 +66,7 @@ class NISDigitalStoreApp extends StatelessWidget {
           return MaterialApp(
             title: 'NIS Digital Store',
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: themeProvider.themeMode,
+            theme: AppTheme.getTheme(themeProvider.currentThemeId),
             home: const SplashScreen(),
           );
         },

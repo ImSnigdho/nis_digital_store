@@ -36,9 +36,9 @@ class GlassmorphicCard extends StatelessWidget {
             onTap: onTap,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding: padding ?? const EdgeInsets.all(16),
+              padding: padding ?? EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: color ?? AppColors.glassBg,
+                color: color ?? AppColors.of(context).glassBg,
                 borderRadius: BorderRadius.circular(borderRadius),
                 border: Border.all(
                   color: Colors.white.withValues(alpha: borderOpacity),
@@ -75,12 +75,12 @@ class GlassmorphicContainer extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
         child: Container(
-          padding: padding ?? const EdgeInsets.all(16),
+          padding: padding ?? EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.glassBg,
+            color: AppColors.of(context).glassBg,
             borderRadius: BorderRadius.circular(borderRadius),
             border: Border.all(
-              color: AppColors.glassBorder,
+              color: AppColors.of(context).glassBorder,
               width: 0.5,
             ),
           ),
@@ -90,3 +90,4 @@ class GlassmorphicContainer extends StatelessWidget {
     );
   }
 }
+

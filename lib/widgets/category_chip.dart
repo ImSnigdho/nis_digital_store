@@ -32,17 +32,17 @@ class _CategoryChipState extends State<CategoryChip> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          transform: Matrix4.identity()..scale(_isHovered ? 1.05 : 1.0),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          transform: Matrix4.diagonal3Values(_isHovered ? 1.05 : 1.0, _isHovered ? 1.05 : 1.0, 1.0),
           decoration: BoxDecoration(
             color: widget.isSelected
-                ? AppColors.primary.withValues(alpha: 0.3)
-                : (_isHovered ? AppColors.glassBg.withValues(alpha: 0.15) : AppColors.glassBg),
+                ? AppColors.of(context).primary.withValues(alpha: 0.3)
+                : (_isHovered ? AppColors.of(context).glassBg.withValues(alpha: 0.15) : AppColors.of(context).glassBg),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: widget.isSelected
-                  ? AppColors.primary
-                  : (_isHovered ? AppColors.primary.withValues(alpha: 0.5) : AppColors.glassBorder),
+                  ? AppColors.of(context).primary
+                  : (_isHovered ? AppColors.of(context).primary.withValues(alpha: 0.5) : AppColors.of(context).glassBorder),
               width: widget.isSelected ? 1.5 : 0.5,
             ),
           ),
@@ -51,12 +51,12 @@ class _CategoryChipState extends State<CategoryChip> {
             children: [
               if (widget.icon != null) ...[
                 Text(widget.icon!, style: const TextStyle(fontSize: 16)),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
               ],
               Text(
                 widget.label,
                 style: TextStyle(
-                  color: widget.isSelected ? AppColors.primary : (Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.textColor),
+                  color: widget.isSelected ? AppColors.of(context).primary : (Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.of(context).textColor),
                   fontSize: 13,
                   fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w400,
                 ),
@@ -68,3 +68,4 @@ class _CategoryChipState extends State<CategoryChip> {
     );
   }
 }
+

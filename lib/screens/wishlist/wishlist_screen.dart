@@ -16,10 +16,10 @@ class WishlistScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'My Wishlist',
           style: TextStyle(
-            color: AppColors.textColor,
+            color: AppColors.of(context).textColor,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -30,8 +30,8 @@ class WishlistScreen extends StatelessWidget {
       body: Consumer<WishlistProvider>(
         builder: (context, wishlist, _) {
           if (wishlist.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
+            return Center(
+              child: CircularProgressIndicator(color: AppColors.of(context).primary),
             );
           }
 
@@ -41,21 +41,21 @@ class WishlistScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.favorite_border,
-                      color: AppColors.textSecondary.withValues(alpha: 0.5), size: 80),
+                      color: AppColors.of(context).textSecondary.withValues(alpha: 0.5), size: 80),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Your wishlist is empty',
                     style: TextStyle(
-                      color: AppColors.textColor,
+                      color: AppColors.of(context).textColor,
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Save items you love for later',
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: AppColors.of(context).textSecondary,
                       fontSize: 14,
                     ),
                   ),
@@ -113,7 +113,7 @@ class WishlistScreen extends StatelessWidget {
                                 SnackBar(
                                   content:
                                       Text('${product.name} moved to cart'),
-                                  backgroundColor: AppColors.success,
+                                  backgroundColor: AppColors.of(context).success,
                                   behavior: SnackBarBehavior.floating,
                                   shape: RoundedRectangleBorder(
                                     borderRadius:
@@ -124,14 +124,14 @@ class WishlistScreen extends StatelessWidget {
                             }
                           },
                           child: Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: AppColors.primary,
+                              color: AppColors.of(context).primary,
                               borderRadius: BorderRadius.circular(10),
                               boxShadow: [
                                 BoxShadow(
                                   color:
-                                      AppColors.primary.withValues(alpha: 0.4),
+                                      AppColors.of(context).primary.withValues(alpha: 0.4),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -156,3 +156,4 @@ class WishlistScreen extends StatelessWidget {
     );
   }
 }
+

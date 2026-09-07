@@ -17,10 +17,10 @@ class CartScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'My Cart',
           style: TextStyle(
-            color: AppColors.textColor,
+            color: AppColors.of(context).textColor,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -31,8 +31,8 @@ class CartScreen extends StatelessWidget {
       body: Consumer2<CartProvider, AuthProvider>(
         builder: (context, cart, auth, _) {
           if (cart.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
+            return Center(
+              child: CircularProgressIndicator(color: AppColors.of(context).primary),
             );
           }
 
@@ -42,21 +42,21 @@ class CartScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.shopping_cart_outlined,
-                      color: AppColors.textSecondary.withValues(alpha: 0.5), size: 80),
+                      color: AppColors.of(context).textSecondary.withValues(alpha: 0.5), size: 80),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Your cart is empty',
                     style: TextStyle(
-                      color: AppColors.textColor,
+                      color: AppColors.of(context).textColor,
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Add some products to get started',
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: AppColors.of(context).textSecondary,
                       fontSize: 14,
                     ),
                   ),
@@ -80,23 +80,23 @@ class CartScreen extends StatelessWidget {
                     background: Container(
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.only(right: 20),
-                      margin: const EdgeInsets.only(bottom: 12),
+                      margin: EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
-                        color: AppColors.error.withValues(alpha: 0.2),
+                        color: AppColors.of(context).error.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Icon(Icons.delete_outline,
-                          color: AppColors.error, size: 28),
+                      child: Icon(Icons.delete_outline,
+                          color: AppColors.of(context).error, size: 28),
                     ),
                     onDismissed: (_) => cart.removeFromCart(item.id),
                     child: Container(
                       margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(12),
+                      padding: EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.glassBg,
+                        color: AppColors.of(context).glassBg,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                            color: AppColors.glassBorder, width: 0.5),
+                            color: AppColors.of(context).glassBorder, width: 0.5),
                       ),
                       child: Row(
                         children: [
@@ -111,9 +111,9 @@ class CartScreen extends StatelessWidget {
                               errorWidget: (context, url, error) => Container(
                                 width: 80,
                                 height: 80,
-                                color: AppColors.surface,
-                                child: const Icon(Icons.image,
-                                    color: AppColors.textSecondary),
+                                color: AppColors.of(context).surface,
+                                child: Icon(Icons.image,
+                                    color: AppColors.of(context).textSecondary),
                               ),
                             ),
                           ),
@@ -125,8 +125,8 @@ class CartScreen extends StatelessWidget {
                               children: [
                                 Text(
                                   product?.name ?? 'Product',
-                                  style: const TextStyle(
-                                    color: AppColors.textColor,
+                                  style: TextStyle(
+                                    color: AppColors.of(context).textColor,
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -140,8 +140,8 @@ class CartScreen extends StatelessWidget {
                                           product.getPrice(auth.currency),
                                           auth.currency)
                                       : '',
-                                  style: const TextStyle(
-                                    color: AppColors.primary,
+                                  style: TextStyle(
+                                    color: AppColors.of(context).primary,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -150,7 +150,7 @@ class CartScreen extends StatelessWidget {
                                 // Quantity controls
                                 Row(
                                   children: [
-                                    _buildQtyButton(
+                                    _buildQtyButton(context,
                                       icon: Icons.remove,
                                       onTap: () => cart.updateQuantity(
                                           item.id, item.quantity - 1),
@@ -160,14 +160,14 @@ class CartScreen extends StatelessWidget {
                                           horizontal: 12),
                                       child: Text(
                                         '${item.quantity}',
-                                        style: const TextStyle(
-                                          color: AppColors.textColor,
+                                        style: TextStyle(
+                                          color: AppColors.of(context).textColor,
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
                                     ),
-                                    _buildQtyButton(
+                                    _buildQtyButton(context,
                                       icon: Icons.add,
                                       onTap: () => cart.updateQuantity(
                                           item.id, item.quantity + 1),
@@ -181,8 +181,8 @@ class CartScreen extends StatelessWidget {
                           Text(
                             CurrencyFormatter.format(
                                 item.totalPrice(auth.currency), auth.currency),
-                            style: const TextStyle(
-                              color: AppColors.textColor,
+                            style: TextStyle(
+                              color: AppColors.of(context).textColor,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
@@ -209,10 +209,10 @@ class CartScreen extends StatelessWidget {
                           20,
                           MediaQuery.of(context).padding.bottom + 20),
                       decoration: BoxDecoration(
-                        color: AppColors.surface.withValues(alpha: 0.9),
-                        border: const Border(
+                        color: AppColors.of(context).surface.withValues(alpha: 0.9),
+                        border: Border(
                           top: BorderSide(
-                              color: AppColors.glassBorder, width: 0.5),
+                              color: AppColors.of(context).glassBorder, width: 0.5),
                         ),
                       ),
                       child: Column(
@@ -226,10 +226,10 @@ class CartScreen extends StatelessWidget {
                                 crossAxisAlignment:
                                     CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Total',
                                     style: TextStyle(
-                                      color: AppColors.textSecondary,
+                                      color: AppColors.of(context).textSecondary,
                                       fontSize: 14,
                                     ),
                                   ),
@@ -238,8 +238,8 @@ class CartScreen extends StatelessWidget {
                                     CurrencyFormatter.format(
                                         cart.totalPrice(auth.currency),
                                         auth.currency),
-                                    style: const TextStyle(
-                                      color: AppColors.textColor,
+                                    style: TextStyle(
+                                      color: AppColors.of(context).textColor,
                                       fontSize: 24,
                                       fontWeight: FontWeight.w800,
                                     ),
@@ -248,8 +248,8 @@ class CartScreen extends StatelessWidget {
                               ),
                               Text(
                                 '${cart.itemCount} items',
-                                style: const TextStyle(
-                                  color: AppColors.textSecondary,
+                                style: TextStyle(
+                                  color: AppColors.of(context).textSecondary,
                                   fontSize: 14,
                                 ),
                               ),
@@ -269,7 +269,7 @@ class CartScreen extends StatelessWidget {
                                 );
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
+                                backgroundColor: AppColors.of(context).primary,
                                 shape: RoundedRectangleBorder(
                                   borderRadius:
                                       BorderRadius.circular(16),
@@ -297,7 +297,7 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQtyButton(
+  Widget _buildQtyButton(BuildContext context,
       {required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
@@ -305,12 +305,13 @@ class CartScreen extends StatelessWidget {
         width: 28,
         height: 28,
         decoration: BoxDecoration(
-          color: AppColors.glassBg,
+          color: AppColors.of(context).glassBg,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.glassBorder),
+          border: Border.all(color: AppColors.of(context).glassBorder),
         ),
-        child: Icon(icon, color: AppColors.textColor, size: 14),
+        child: Icon(icon, color: AppColors.of(context).textColor, size: 14),
       ),
     );
   }
 }
+

@@ -19,6 +19,24 @@ class OrderService {
         .toList();
   }
 
+  Future<List<Order>> getAllOrders() async {
+    final response = await _client
+        .from('orders')
+        .select('*, order_items(*)')
+        .order('created_at', ascending: false);
+
+    return (response as List)
+        .map((json) => Order.fromJson(json as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> updateOrderStatus(String orderId, String status) async {
+    await _client
+        .from('orders')
+        .update({'status': status, 'updated_at': DateTime.now().toIso8601String()})
+        .eq('id', orderId);
+  }
+
   Future<Order> getOrderById(String orderId) async {
     final response = await _client
         .from('orders')
@@ -32,21 +50,29 @@ class OrderService {
   Future<Order> placeOrder({
     required List<CartItem> cartItems,
     required String currency,
-    required String paymentMethod,
+    required String paymentMethodId,
     required String paymentRef,
     required Map<String, dynamic> shippingAddress,
+    String? promoCodeId,
+    double discountAmount = 0,
+    String? paymentMethodName,
   }) async {
     double totalBdt = 0;
     double totalUsd = 0;
 
     for (final item in cartItems) {
       if (item.product != null) {
-        totalBdt += item.product!.priceBdt * item.quantity;
-        totalUsd += item.product!.priceUsd * item.quantity;
+        final unitBdt = item.product!.salePriceBdt ?? item.product!.priceBdt;
+        final unitUsd = item.product!.salePriceUsd ?? item.product!.priceUsd;
+        totalBdt += unitBdt * item.quantity;
+        totalUsd += unitUsd * item.quantity;
       }
     }
 
-    // Create the order
+    // Apply discount
+    totalBdt = (totalBdt - discountAmount).clamp(0, double.infinity);
+
+    // Create the order with all customer fields denormalized for admin visibility
     final orderResponse = await _client
         .from('orders')
         .insert({
@@ -55,9 +81,16 @@ class OrderService {
           'total_bdt': totalBdt,
           'total_usd': totalUsd,
           'currency': currency,
-          'payment_method': paymentMethod,
+          'payment_method_id': paymentMethodId,
+          'payment_method': paymentMethodName, // human-readable for admin
           'payment_ref': paymentRef,
           'shipping_address': shippingAddress,
+          // Denormalized for easy admin querying
+          'customer_name': shippingAddress['name'],
+          'delivery_email': shippingAddress['email'],
+          'phone': shippingAddress['phone'],
+          'promo_code_id': promoCodeId,
+          'discount_amount': discountAmount,
         })
         .select()
         .single();
@@ -72,8 +105,8 @@ class OrderService {
               'product_id': item.productId,
               'product_name': item.product!.name,
               'quantity': item.quantity,
-              'price_bdt': item.product!.priceBdt,
-              'price_usd': item.product!.priceUsd,
+              'price_bdt': item.product!.salePriceBdt ?? item.product!.priceBdt,
+              'price_usd': item.product!.salePriceUsd ?? item.product!.priceUsd,
             })
         .toList();
 

@@ -38,9 +38,12 @@ class _ProductCardState extends State<ProductCard> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutCubic,
-        transform: Matrix4.identity()
-          ..scale(_isHovered ? 1.03 : 1.0)
-          ..translate(0.0, _isHovered ? -5.0 : 0.0),
+        transform: Matrix4.diagonal3Values(
+          _isHovered ? 1.02 : 1.0,
+          _isHovered ? 1.02 : 1.0,
+          1.0,
+        ),
+        alignment: FractionalOffset.center,
         child: GlassmorphicCard(
           onTap: widget.onTap,
           padding: EdgeInsets.zero,
@@ -58,14 +61,14 @@ class _ProductCardState extends State<ProductCard> {
                         imageUrl: widget.product.primaryImage,
                         fit: BoxFit.cover,
                         placeholder: (context, url) => Shimmer.fromColors(
-                          baseColor: AppColors.surface,
-                          highlightColor: AppColors.glassBorder,
-                          child: Container(color: AppColors.surface),
+                          baseColor: AppColors.of(context).surface,
+                          highlightColor: AppColors.of(context).glassBorder,
+                          child: Container(color: AppColors.of(context).surface),
                         ),
                         errorWidget: (context, url, error) => Container(
-                          color: AppColors.surface,
-                          child: const Icon(Icons.image_not_supported,
-                              color: AppColors.textSecondary, size: 40),
+                          color: AppColors.of(context).surface,
+                          child: Icon(Icons.image_not_supported,
+                              color: AppColors.of(context).textSecondary, size: 40),
                         ),
                       ),
                     ),
@@ -98,13 +101,13 @@ class _ProductCardState extends State<ProductCard> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [AppColors.primary, AppColors.accent],
+                          gradient: LinearGradient(
+                            colors: [AppColors.of(context).primary, AppColors.of(context).accent],
                           ),
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.3),
+                              color: AppColors.of(context).primary.withValues(alpha: 0.3),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             )
@@ -132,19 +135,19 @@ class _ProductCardState extends State<ProductCard> {
                       if (widget.product.brand != null)
                         Text(
                           widget.product.brand!,
-                          style: const TextStyle(
-                            color: AppColors.accent,
+                          style: TextStyle(
+                            color: AppColors.of(context).accent,
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Text(
                         widget.product.name,
                         style: TextStyle(
-                          color: Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.textColor,
+                          color: Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.of(context).textColor,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
@@ -158,8 +161,8 @@ class _ProductCardState extends State<ProductCard> {
                           Text(
                             CurrencyFormatter.format(
                                 widget.product.getPrice(widget.currency), widget.currency),
-                            style: const TextStyle(
-                              color: AppColors.primary,
+                            style: TextStyle(
+                              color: AppColors.of(context).primary,
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                             ),
@@ -171,8 +174,8 @@ class _ProductCardState extends State<ProductCard> {
                                 const SizedBox(width: 2),
                                 Text(
                                   widget.product.rating.toStringAsFixed(1),
-                                  style: const TextStyle(
-                                    color: AppColors.textSecondary,
+                                  style: TextStyle(
+                                    color: AppColors.of(context).textSecondary,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -191,3 +194,4 @@ class _ProductCardState extends State<ProductCard> {
     );
   }
 }
+

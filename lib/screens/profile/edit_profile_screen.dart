@@ -15,6 +15,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _discordController;
+  String? _avatarUrl;
   bool _isLoading = false;
 
   @override
@@ -24,6 +25,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController = TextEditingController(text: profile?.fullName ?? '');
     _phoneController = TextEditingController(text: profile?.phone ?? '');
     _discordController = TextEditingController(text: profile?.discordUsername ?? '');
+    _avatarUrl = profile?.avatarUrl ?? context.read<AuthProvider>().user?.userMetadata?['picture'] ?? context.read<AuthProvider>().user?.userMetadata?['avatar_url'];
   }
 
   @override
@@ -46,6 +48,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             fullName: _nameController.text.trim(),
             phone: _phoneController.text.trim(),
             discordUsername: _discordController.text.trim(),
+            avatarUrl: _avatarUrl,
           ),
         );
         if (mounted) {
@@ -54,7 +57,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error saving profile: $e'), backgroundColor: AppColors.error),
+            SnackBar(content: Text('Error saving profile: $e'), backgroundColor: AppColors.of(context).error),
           );
         }
       }
@@ -81,32 +84,57 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Avatar Placeholder for editing
-                Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 60,
-                      backgroundColor: Theme.of(context).colorScheme.surface,
-                      backgroundImage: context.read<AuthProvider>().profile?.avatarUrl != null 
-                        ? NetworkImage(context.read<AuthProvider>().profile!.avatarUrl!)
-                        : null,
-                      child: context.read<AuthProvider>().profile?.avatarUrl == null 
-                        ? Icon(Icons.person, size: 60, color: Theme.of(context).colorScheme.primary)
-                        : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Theme.of(context).scaffoldBackgroundColor, width: 2),
+                GestureDetector(
+                  onTap: () {
+                    final urlCtrl = TextEditingController(text: _avatarUrl ?? '');
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        backgroundColor: AppColors.of(context).surface,
+                        title: Text('Profile Image URL', style: TextStyle(color: AppColors.of(context).textColor)),
+                        content: TextField(
+                          controller: urlCtrl,
+                          style: TextStyle(color: AppColors.of(context).textColor),
+                          decoration: InputDecoration(hintText: 'Enter image URL (https://...)'),
                         ),
-                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel')),
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() => _avatarUrl = urlCtrl.text.trim().isEmpty ? null : urlCtrl.text.trim());
+                              Navigator.pop(ctx);
+                            },
+                            child: Text('Save'),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                    );
+                  },
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 60,
+                        backgroundColor: AppColors.of(context).primary.withValues(alpha: 0.2),
+                        backgroundImage: _avatarUrl != null ? NetworkImage(_avatarUrl!) : null,
+                        child: _avatarUrl == null 
+                          ? Icon(Icons.person, size: 60, color: AppColors.of(context).primary)
+                          : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.of(context).primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.of(context).surface, width: 2),
+                          ),
+                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 32),
 
@@ -165,3 +193,4 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 }
+

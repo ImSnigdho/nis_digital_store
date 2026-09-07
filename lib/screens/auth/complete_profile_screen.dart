@@ -74,7 +74,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating profile: $e'), backgroundColor: AppColors.error),
+          SnackBar(content: Text('Error updating profile: $e'), backgroundColor: AppColors.of(context).error),
         );
       }
     } finally {
@@ -102,27 +102,27 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   'Just a few more details to get started!',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+                  style: TextStyle(color: AppColors.of(context).textSecondary, fontSize: 16),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
                 
                 // Avatar
                 CircleAvatar(
                   radius: 50,
-                  backgroundColor: AppColors.surface,
+                  backgroundColor: AppColors.of(context).surface,
                   backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
                   child: avatarUrl == null
-                      ? const Icon(Icons.person, size: 50, color: AppColors.textSecondary)
+                      ? Icon(Icons.person, size: 50, color: AppColors.of(context).textSecondary)
                       : null,
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
 
                 // Name
                 TextFormField(
                   controller: _nameController,
-                  style: const TextStyle(color: AppColors.textColor),
+                  style: TextStyle(color: AppColors.of(context).textColor),
                   decoration: const InputDecoration(
                     labelText: 'Full Name',
                     prefixIcon: Icon(Icons.person_outline),
@@ -135,19 +135,19 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
-                  style: const TextStyle(color: AppColors.textColor),
+                  style: TextStyle(color: AppColors.of(context).textColor),
                   decoration: const InputDecoration(
                     labelText: 'Phone Number (Required)',
                     prefixIcon: Icon(Icons.phone_outlined),
                   ),
                   validator: (v) => v!.isEmpty ? 'Phone number is required' : null,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // Discord
                 TextFormField(
                   controller: _discordController,
-                  style: const TextStyle(color: AppColors.textColor),
+                  style: TextStyle(color: AppColors.of(context).textColor),
                   decoration: const InputDecoration(
                     labelText: 'Discord Username (Optional)',
                     prefixIcon: Icon(Icons.discord),
@@ -158,12 +158,12 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 // Country Dropdown
                 DropdownButtonFormField<String>(
                   initialValue: _selectedCountry,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Country',
                     prefixIcon: Icon(Icons.public),
                   ),
-                  dropdownColor: AppColors.surface,
-                  style: const TextStyle(color: AppColors.textColor),
+                  dropdownColor: AppColors.of(context).surface,
+                  style: TextStyle(color: AppColors.of(context).textColor),
                   items: _countries.map((c) {
                     return DropdownMenuItem(
                       value: c,
@@ -196,3 +196,4 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     );
   }
 }
+

@@ -107,12 +107,12 @@ class _SplashScreenState extends State<SplashScreen>
                         height: 120,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            colors: [AppColors.primary, AppColors.accent],
+                          gradient: LinearGradient(
+                            colors: [AppColors.of(context).primary, AppColors.of(context).accent],
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.4),
+                              color: AppColors.of(context).primary.withValues(alpha: 0.4),
                               blurRadius: 30,
                               spreadRadius: 5,
                             ),
@@ -131,20 +131,20 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ),
                       const SizedBox(height: 24),
-                      const Text(
+                      Text(
                         'NIS Digital Store',
                         style: TextStyle(
-                          color: AppColors.textColor,
+                          color: AppColors.of(context).textColor,
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Premium Shopping Experience',
                         style: TextStyle(
-                          color: AppColors.textSecondary,
+                          color: AppColors.of(context).textSecondary,
                           fontSize: 14,
                           letterSpacing: 2,
                         ),
@@ -155,7 +155,7 @@ class _SplashScreenState extends State<SplashScreen>
                         height: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: AppColors.primary.withValues(alpha: 0.7),
+                          color: AppColors.of(context).primary.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -169,3 +169,4 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
+

@@ -17,3 +17,4 @@ class AppConstants {
   static const String paymentNagad = 'Nagad';
   static const String paymentCard = 'Card';
 }
+

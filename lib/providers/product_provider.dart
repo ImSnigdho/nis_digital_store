@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../services/product_service.dart';
 import '../models/product.dart';
@@ -126,5 +127,145 @@ class ProductProvider extends ChangeNotifier {
     _searchQuery = null;
     _selectedBrand = null;
     loadProducts();
+  }
+
+  // ──── PRODUCT CRUD ────
+
+  Future<Product> createProduct({
+    required String name,
+    String? shortDescription,
+    String? description,
+    required double priceBdt,
+    required double priceUsd,
+    double? salePriceBdt,
+    double? salePriceUsd,
+    String? categoryId,
+    String status = 'active',
+    bool isFeatured = false,
+    String? thumbnailUrl,
+    String? fileUrl,
+    String? brand,
+  }) async {
+    final product = await _productService.createProduct(
+      name: name,
+      shortDescription: shortDescription,
+      description: description,
+      priceBdt: priceBdt,
+      priceUsd: priceUsd,
+      salePriceBdt: salePriceBdt,
+      salePriceUsd: salePriceUsd,
+      categoryId: categoryId,
+      status: status,
+      isFeatured: isFeatured,
+      thumbnailUrl: thumbnailUrl,
+      fileUrl: fileUrl,
+      brand: brand,
+    );
+    await loadProducts();
+    return product;
+  }
+
+  Future<void> updateProductFull({
+    required String id,
+    required String name,
+    String? shortDescription,
+    String? description,
+    required double priceBdt,
+    required double priceUsd,
+    double? salePriceBdt,
+    double? salePriceUsd,
+    String? categoryId,
+    String status = 'active',
+    bool isFeatured = false,
+    String? thumbnailUrl,
+    String? fileUrl,
+    String? brand,
+  }) async {
+    await _productService.updateProductFull(
+      id: id,
+      name: name,
+      shortDescription: shortDescription,
+      description: description,
+      priceBdt: priceBdt,
+      priceUsd: priceUsd,
+      salePriceBdt: salePriceBdt,
+      salePriceUsd: salePriceUsd,
+      categoryId: categoryId,
+      status: status,
+      isFeatured: isFeatured,
+      thumbnailUrl: thumbnailUrl,
+      fileUrl: fileUrl,
+      brand: brand,
+    );
+    await loadProducts();
+  }
+
+  Future<void> updateProduct(String id, String name, double price) async {
+    try {
+      await _productService.updateProduct(id, name, price);
+      await loadProducts();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteProduct(String id) async {
+    try {
+      await _productService.deleteProduct(id);
+      await loadProducts();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  // ──── FILE UPLOADS ────
+
+  Future<String> uploadThumbnail(String fileName, Uint8List bytes) async {
+    return _productService.uploadThumbnail(fileName, bytes);
+  }
+
+  Future<String> uploadProductFile(String fileName, Uint8List bytes) async {
+    return _productService.uploadProductFile(fileName, bytes);
+  }
+
+  // ──── CATEGORY CRUD ────
+
+  Future<void> createCategory({
+    required String name,
+    required String slug,
+    String? description,
+    String status = 'active',
+  }) async {
+    await _productService.createCategory(
+      name: name,
+      slug: slug,
+      description: description,
+      status: status,
+    );
+    await loadCategories();
+  }
+
+  Future<void> updateCategory({
+    required String id,
+    required String name,
+    required String slug,
+    String? description,
+    String status = 'active',
+  }) async {
+    await _productService.updateCategory(
+      id: id,
+      name: name,
+      slug: slug,
+      description: description,
+      status: status,
+    );
+    await loadCategories();
+  }
+
+  Future<void> deleteCategory(String id) async {
+    await _productService.deleteCategory(id);
+    await loadCategories();
   }
 }

@@ -30,13 +30,13 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textColor),
+          icon: Icon(Icons.arrow_back, color: AppColors.of(context).textColor),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           'Order History',
           style: TextStyle(
-            color: AppColors.textColor,
+            color: AppColors.of(context).textColor,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -46,8 +46,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       body: Consumer<OrderProvider>(
         builder: (context, orderProvider, _) {
           if (orderProvider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
+            return Center(
+              child: CircularProgressIndicator(color: AppColors.of(context).primary),
             );
           }
 
@@ -57,22 +57,22 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.receipt_long_outlined,
-                      color: AppColors.textSecondary.withValues(alpha: 0.5),
+                      color: AppColors.of(context).textSecondary.withValues(alpha: 0.5),
                       size: 80),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'No orders yet',
                     style: TextStyle(
-                      color: AppColors.textColor,
+                      color: AppColors.of(context).textColor,
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Your order history will appear here',
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: AppColors.of(context).textSecondary,
                       fontSize: 14,
                     ),
                   ),
@@ -99,11 +99,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     final currency = auth.currency;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: AppColors.glassBg,
+        color: AppColors.of(context).glassBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.glassBorder, width: 0.5),
+        border: Border.all(color: AppColors.of(context).glassBorder, width: 0.5),
       ),
       child: Theme(
         data: Theme.of(context).copyWith(
@@ -121,8 +121,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                   children: [
                     Text(
                       'Order #${order.id.substring(0, 8).toUpperCase()}',
-                      style: const TextStyle(
-                        color: AppColors.textColor,
+                      style: TextStyle(
+                        color: AppColors.of(context).textColor,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -133,8 +133,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                           ? DateFormat('MMM dd, yyyy — hh:mm a')
                               .format(order.createdAt!.toLocal())
                           : 'Unknown date',
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: AppColors.of(context).textSecondary,
                         fontSize: 12,
                       ),
                     ),
@@ -149,8 +149,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                   Text(
                     CurrencyFormatter.format(
                         order.getTotal(currency), currency),
-                    style: const TextStyle(
-                      color: AppColors.primary,
+                    style: TextStyle(
+                      color: AppColors.of(context).primary,
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                     ),
@@ -159,10 +159,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               ),
             ],
           ),
-          iconColor: AppColors.textSecondary,
-          collapsedIconColor: AppColors.textSecondary,
+          iconColor: AppColors.of(context).textSecondary,
+          collapsedIconColor: AppColors.of(context).textSecondary,
           children: [
-            const Divider(color: AppColors.glassBorder),
+            Divider(color: AppColors.of(context).glassBorder),
             const SizedBox(height: 8),
             ...order.items.map((item) {
               return Padding(
@@ -173,8 +173,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     Expanded(
                       child: Text(
                         '${item.productName} x${item.quantity}',
-                        style: const TextStyle(
-                          color: AppColors.textColor,
+                        style: TextStyle(
+                          color: AppColors.of(context).textColor,
                           fontSize: 13,
                         ),
                       ),
@@ -182,8 +182,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     Text(
                       CurrencyFormatter.format(
                           item.getPrice(currency) * item.quantity, currency),
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: AppColors.of(context).textSecondary,
                         fontSize: 13,
                       ),
                     ),
@@ -195,13 +195,13 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.payment,
-                      color: AppColors.textSecondary, size: 16),
+                  Icon(Icons.payment,
+                      color: AppColors.of(context).textSecondary, size: 16),
                   const SizedBox(width: 8),
                   Text(
                     'Paid via ${order.paymentMethod}',
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      color: AppColors.of(context).textSecondary,
                       fontSize: 12,
                     ),
                   ),
@@ -220,27 +220,27 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
     switch (status) {
       case 'pending':
-        color = AppColors.warning;
+        color = AppColors.of(context).warning;
         icon = Icons.schedule;
         break;
       case 'confirmed':
-        color = AppColors.primary;
+        color = AppColors.of(context).primary;
         icon = Icons.check_circle_outline;
         break;
       case 'shipped':
-        color = AppColors.accent;
+        color = AppColors.of(context).accent;
         icon = Icons.local_shipping_outlined;
         break;
       case 'delivered':
-        color = AppColors.success;
+        color = AppColors.of(context).success;
         icon = Icons.check_circle;
         break;
       case 'cancelled':
-        color = AppColors.error;
+        color = AppColors.of(context).error;
         icon = Icons.cancel_outlined;
         break;
       default:
-        color = AppColors.textSecondary;
+        color = AppColors.of(context).textSecondary;
         icon = Icons.info_outline;
     }
 
@@ -268,3 +268,4 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     );
   }
 }
+

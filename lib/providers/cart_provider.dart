@@ -74,3 +74,4 @@ class CartProvider extends ChangeNotifier {
     }
   }
 }
+

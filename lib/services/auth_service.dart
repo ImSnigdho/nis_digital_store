@@ -48,3 +48,4 @@ class AuthService {
     return await _client.auth.signInWithOAuth(OAuthProvider.google);
   }
 }
+

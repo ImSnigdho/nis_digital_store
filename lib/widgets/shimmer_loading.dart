@@ -30,11 +30,11 @@ class ShimmerProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: AppColors.surface,
-      highlightColor: AppColors.glassBorder,
+      baseColor: AppColors.of(context).surface,
+      highlightColor: AppColors.of(context).glassBorder,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: AppColors.of(context).surface,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -79,11 +79,11 @@ class ShimmerList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.builder(
       shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+      physics: NeverScrollableScrollPhysics(),
       itemCount: itemCount,
       itemBuilder: (context, index) => Shimmer.fromColors(
-        baseColor: AppColors.surface,
-        highlightColor: AppColors.glassBorder,
+        baseColor: AppColors.of(context).surface,
+        highlightColor: AppColors.of(context).glassBorder,
         child: Container(
           margin: const EdgeInsets.only(bottom: 12),
           height: 80,
@@ -96,3 +96,4 @@ class ShimmerList extends StatelessWidget {
     );
   }
 }
+

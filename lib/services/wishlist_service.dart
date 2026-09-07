@@ -63,3 +63,4 @@ class WishlistService {
     return (response as List).length;
   }
 }
+

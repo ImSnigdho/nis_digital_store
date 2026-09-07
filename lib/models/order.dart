@@ -12,6 +12,11 @@ class Order {
   final DateTime? updatedAt;
   List<OrderItem> items;
 
+  // Top-level denormalized fields (stored as separate columns in DB)
+  final String? _customerName;
+  final String? _deliveryEmail;
+  final String? _phone;
+
   Order({
     required this.id,
     required this.userId,
@@ -25,11 +30,26 @@ class Order {
     this.createdAt,
     this.updatedAt,
     this.items = const [],
-  });
+    String? customerName,
+    String? deliveryEmail,
+    String? phone,
+  })  : _customerName = customerName,
+        _deliveryEmail = deliveryEmail,
+        _phone = phone;
 
   double getTotal(String currency) {
     return currency == 'BDT' ? totalBdt : totalUsd;
   }
+
+  /// Falls back to shipping_address fields if top-level columns are null
+  String? get deliveryEmail =>
+      _deliveryEmail ?? shippingAddress?['email'] as String?;
+
+  String? get customerName =>
+      _customerName ?? shippingAddress?['name'] as String?;
+
+  String? get customerPhone =>
+      _phone ?? shippingAddress?['phone'] as String?;
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
@@ -42,6 +62,9 @@ class Order {
       paymentMethod: json['payment_method'] as String?,
       paymentRef: json['payment_ref'] as String?,
       shippingAddress: json['shipping_address'] as Map<String, dynamic>?,
+      customerName: json['customer_name'] as String?,
+      deliveryEmail: json['delivery_email'] as String?,
+      phone: json['phone'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,

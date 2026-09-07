@@ -11,6 +11,7 @@ import '../../widgets/search_bar_widget.dart';
 import '../../widgets/category_chip.dart';
 import '../../widgets/shimmer_loading.dart';
 import '../product/product_detail_screen.dart';
+import '../product/product_catalog_screen.dart';
 import '../cart/cart_screen.dart';
 import '../wishlist/wishlist_screen.dart';
 import '../profile/profile_screen.dart';
@@ -57,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final screens = [
       _buildHomeContent(),
+      const ProductCatalogScreen(),
       const WishlistScreen(),
       const CartScreen(),
       const ProfileScreen(),
@@ -86,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: _loadData,
-        color: AppColors.primary,
+        color: AppColors.of(context).primary,
         child: CustomScrollView(
           slivers: [
             // App Bar
@@ -103,8 +105,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           builder: (context, auth, _) {
                             return Text(
                               'Hello, ${auth.profile?.fullName ?? 'there'} 👋',
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
+                              style: TextStyle(
+                                color: AppColors.of(context).textSecondary,
                                 fontSize: 14,
                               ),
                             );
@@ -116,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             return Text(
                               store.storeName,
                               style: TextStyle(
-                                color: Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.textColor,
+                                color: Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.of(context).textColor,
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -129,13 +131,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColors.primary, AppColors.accent],
+                        gradient: LinearGradient(
+                          colors: [AppColors.of(context).primary, AppColors.of(context).accent],
                         ),
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.3),
+                            color: AppColors.of(context).primary.withValues(alpha: 0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -225,11 +227,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+                        padding: EdgeInsets.fromLTRB(20, 24, 20, 12),
                         child: Text(
                           '⭐ Featured Products',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.textColor,
+                            color: Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.of(context).textColor,
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
                           ),
@@ -281,13 +283,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
             // All Products Header
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(20, 24, 20, 12),
                 child: Text(
                   '🛍️ All Products',
                   style: TextStyle(
-                    color: Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.textColor,
+                    color: Theme.of(context).textTheme.headlineLarge?.color ?? AppColors.of(context).textColor,
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                   ),
@@ -311,16 +313,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   return SliverToBoxAdapter(
                     child: Center(
                       child: Padding(
-                        padding: const EdgeInsets.all(40),
+                        padding: EdgeInsets.all(40),
                         child: Column(
                           children: [
                             Icon(Icons.search_off,
-                                color: AppColors.textSecondary, size: 48),
+                                color: AppColors.of(context).textSecondary, size: 48),
                             const SizedBox(height: 16),
-                            const Text(
+                            Text(
                               'No products found',
                               style: TextStyle(
-                                color: AppColors.textSecondary,
+                                color: AppColors.of(context).textSecondary,
                                 fontSize: 16,
                               ),
                             ),
@@ -381,3 +383,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+

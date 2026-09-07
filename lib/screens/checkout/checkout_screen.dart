@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../models/payment_method.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/order_provider.dart';
+import '../../services/payment_method_service.dart';
+import '../../services/promo_code_service.dart';
 import '../../utils/currency_formatter.dart';
-import '../../utils/constants.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -18,11 +20,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _addressController = TextEditingController();
-  final _cityController = TextEditingController();
+  final _emailController = TextEditingController();
   final _paymentRefController = TextEditingController();
+  final _promoCodeController = TextEditingController();
 
-  String _paymentMethod = AppConstants.paymentBkash;
+  List<PaymentMethod> _paymentMethods = [];
+  bool _isLoadingMethods = true;
+  String? _paymentMethodId;
+  
+  PromoValidationResult? _promoResult;
+  bool _isValidatingPromo = false;
 
   @override
   void initState() {
@@ -31,19 +38,56 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _nameController.text = auth.profile?.fullName ?? '';
     _phoneController.text = auth.profile?.phone ?? '';
 
-    // Set payment method based on country
-    if (auth.country != 'BD') {
-      _paymentMethod = AppConstants.paymentCard;
+    _loadPaymentMethods();
+  }
+
+  Future<void> _loadPaymentMethods() async {
+    try {
+      final methods = await PaymentMethodService().getActivePaymentMethods();
+      if (mounted) {
+        setState(() {
+          _paymentMethods = methods;
+          if (methods.isNotEmpty) {
+            _paymentMethodId = methods.first.id;
+          }
+          _isLoadingMethods = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingMethods = false);
+      }
     }
+  }
+
+  Future<void> _applyPromoCode() async {
+    final code = _promoCodeController.text.trim();
+    if (code.isEmpty) return;
+
+    setState(() => _isValidatingPromo = true);
+
+    final auth = context.read<AuthProvider>();
+    final cart = context.read<CartProvider>();
+    
+    final result = await PromoCodeService().validatePromoCode(
+      code,
+      auth.currency,
+      cart.totalPrice(auth.currency),
+    );
+
+    setState(() {
+      _promoResult = result;
+      _isValidatingPromo = false;
+    });
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
-    _addressController.dispose();
-    _cityController.dispose();
+    _emailController.dispose();
     _paymentRefController.dispose();
+    _promoCodeController.dispose();
     super.dispose();
   }
 
@@ -54,16 +98,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final cart = context.read<CartProvider>();
     final orderProvider = context.read<OrderProvider>();
 
+    final selectedMethod = _paymentMethods
+        .where((m) => m.id == _paymentMethodId)
+        .firstOrNull;
+
     final order = await orderProvider.placeOrder(
       cartItems: cart.items,
       currency: auth.currency,
-      paymentMethod: _paymentMethod,
+      paymentMethodId: _paymentMethodId!,
       paymentRef: _paymentRefController.text.trim(),
+      promoCodeId: _promoResult?.valid == true ? _promoResult!.promoId : null,
+      discountAmount: _promoResult?.valid == true ? _promoResult!.discountAmount : 0,
+      paymentMethodName: selectedMethod?.name,
       shippingAddress: {
         'name': _nameController.text.trim(),
         'phone': _phoneController.text.trim(),
-        'address': _addressController.text.trim(),
-        'city': _cityController.text.trim(),
+        'email': _emailController.text.trim(),
       },
     );
 
@@ -76,7 +126,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           context: context,
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
-            backgroundColor: AppColors.surface,
+            backgroundColor: AppColors.of(context).surface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
@@ -87,27 +137,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppColors.success.withValues(alpha: 0.15),
+                    color: AppColors.of(context).success.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.check_circle,
-                      color: AppColors.success, size: 48),
+                  child: Icon(Icons.check_circle,
+                      color: AppColors.of(context).success, size: 48),
                 ),
                 const SizedBox(height: 20),
-                const Text(
+                Text(
                   'Order Placed!',
                   style: TextStyle(
-                    color: AppColors.textColor,
+                    color: AppColors.of(context).textColor,
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Your order has been placed successfully and is pending verification.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppColors.textSecondary,
+                    color: AppColors.of(context).textSecondary,
                     fontSize: 14,
                   ),
                 ),
@@ -120,7 +170,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       Navigator.of(context).pop();
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: AppColors.of(context).primary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -137,7 +187,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(orderProvider.error!),
-          backgroundColor: AppColors.error,
+          backgroundColor: AppColors.of(context).error,
         ),
       );
     }
@@ -147,20 +197,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final cart = context.watch<CartProvider>();
-    final isBD = auth.country == 'BD';
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textColor),
+          icon: Icon(Icons.arrow_back, color: AppColors.of(context).textColor),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           'Checkout',
           style: TextStyle(
-            color: AppColors.textColor,
+            color: AppColors.of(context).textColor,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -177,12 +226,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             const SizedBox(height: 12),
             ...cart.items.map((item) {
               return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(12),
+                margin: EdgeInsets.only(bottom: 8),
+                padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.glassBg,
+                  color: AppColors.of(context).glassBg,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.glassBorder, width: 0.5),
+                  border: Border.all(color: AppColors.of(context).glassBorder, width: 0.5),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -190,8 +239,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     Expanded(
                       child: Text(
                         '${item.product?.name ?? 'Product'} x${item.quantity}',
-                        style: const TextStyle(
-                          color: AppColors.textColor,
+                        style: TextStyle(
+                          color: AppColors.of(context).textColor,
                           fontSize: 14,
                         ),
                       ),
@@ -199,8 +248,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     Text(
                       CurrencyFormatter.format(
                           item.totalPrice(auth.currency), auth.currency),
-                      style: const TextStyle(
-                        color: AppColors.primary,
+                      style: TextStyle(
+                        color: AppColors.of(context).primary,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -209,13 +258,45 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               );
             }),
+            if (_promoResult?.valid == true)
+              Container(
+                margin: EdgeInsets.only(top: 8),
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.of(context).success.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.of(context).success.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Promo Discount (${_promoCodeController.text})',
+                      style: TextStyle(
+                        color: AppColors.of(context).success,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      '-${CurrencyFormatter.format(_promoResult!.discountAmount, auth.currency)}',
+                      style: TextStyle(
+                        color: AppColors.of(context).success,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.primary.withValues(alpha: 0.1),
-                    AppColors.accent.withValues(alpha: 0.1),
+                    AppColors.of(context).primary.withValues(alpha: 0.1),
+                    AppColors.of(context).accent.withValues(alpha: 0.1),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(12),
@@ -223,19 +304,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Total',
                     style: TextStyle(
-                      color: AppColors.textColor,
+                      color: AppColors.of(context).textColor,
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   Text(
                     CurrencyFormatter.format(
-                        cart.totalPrice(auth.currency), auth.currency),
-                    style: const TextStyle(
-                      color: AppColors.primary,
+                        cart.totalPrice(auth.currency) - (_promoResult?.valid == true ? _promoResult!.discountAmount : 0),
+                        auth.currency),
+                    style: TextStyle(
+                      color: AppColors.of(context).primary,
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
                     ),
@@ -243,6 +325,45 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+            // Promo Code Field
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTextField(
+                    controller: _promoCodeController,
+                    label: 'Promo Code',
+                    icon: Icons.local_offer_outlined,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isValidatingPromo ? null : _applyPromoCode,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.of(context).surface,
+                      foregroundColor: AppColors.of(context).primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: AppColors.of(context).primary),
+                      ),
+                    ),
+                    child: _isValidatingPromo 
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Text('Apply'),
+                  ),
+                ),
+              ],
+            ),
+            if (_promoResult != null && !_promoResult!.valid)
+              Padding(
+                padding: const EdgeInsets.only(top: 8, left: 4),
+                child: Text(
+                  _promoResult!.reason ?? 'Invalid promo code',
+                  style: TextStyle(color: AppColors.of(context).error, fontSize: 12),
+                ),
+              ),
             const SizedBox(height: 28),
 
             // Shipping Info
@@ -266,42 +387,58 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             const SizedBox(height: 12),
             _buildTextField(
-              controller: _addressController,
-              label: 'Address',
-              icon: Icons.location_on_outlined,
-              maxLines: 2,
-              validator: (v) =>
-                  v == null || v.isEmpty ? 'Address is required' : null,
+              controller: _emailController,
+              label: 'Email Address (For Delivery)',
+              icon: Icons.email_outlined,
+              keyboardType: TextInputType.emailAddress,
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Email is required';
+                if (!RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(v)) {
+                  return 'Please enter a valid email address';
+                }
+                return null;
+              },
             ),
-            const SizedBox(height: 12),
-            _buildTextField(
-              controller: _cityController,
-              label: 'City',
-              icon: Icons.location_city_outlined,
-              validator: (v) =>
-                  v == null || v.isEmpty ? 'City is required' : null,
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, left: 16.0, right: 16.0),
+              child: Text(
+                '⚠️ Please enter your correct email carefully. Your digital product will be delivered here.',
+                style: TextStyle(
+                  color: AppColors.of(context).error,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             const SizedBox(height: 28),
 
             // Payment Method
             _buildSectionTitle('Payment Method'),
             const SizedBox(height: 12),
-            if (isBD) ...[
-              _buildPaymentOption(AppConstants.paymentBkash, '📱 bKash',
-                  'Send to: 01XXXXXXXXX'),
-              const SizedBox(height: 8),
-              _buildPaymentOption(AppConstants.paymentNagad, '📱 Nagad',
-                  'Send to: 01XXXXXXXXX'),
-            ] else ...[
-              _buildPaymentOption(AppConstants.paymentCard, '💳 Card Payment',
-                  'Pay via bank transfer'),
-            ],
+            if (_isLoadingMethods)
+              const Center(child: CircularProgressIndicator())
+            else if (_paymentMethods.isEmpty)
+              Text(
+                'No payment methods available',
+                style: TextStyle(color: AppColors.of(context).error),
+              )
+            else
+              ..._paymentMethods.map((method) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: _buildPaymentOption(
+                    method.id, 
+                    method.name, 
+                    'Send to: ${method.accountNumber}',
+                    iconUrl: method.iconUrl,
+                  ),
+                );
+              }),
+            const SizedBox(height: 16),
             const SizedBox(height: 16),
             _buildTextField(
               controller: _paymentRefController,
-              label: isBD
-                  ? 'Transaction ID / Reference'
-                  : 'Payment Reference',
+              label: 'Transaction ID / Reference',
               icon: Icons.receipt_long_outlined,
               validator: (v) =>
                   v == null || v.isEmpty ? 'Payment reference is required' : null,
@@ -318,7 +455,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     onPressed:
                         orderProvider.isLoading ? null : _placeOrder,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: AppColors.of(context).primary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -333,7 +470,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ),
                           )
                         : Text(
-                            'Place Order — ${CurrencyFormatter.format(cart.totalPrice(auth.currency), auth.currency)}',
+                            'Place Order — ${CurrencyFormatter.format(cart.totalPrice(auth.currency) - (_promoResult?.valid == true ? _promoResult!.discountAmount : 0), auth.currency)}',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -353,8 +490,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
-        color: AppColors.textColor,
+      style: TextStyle(
+        color: AppColors.of(context).textColor,
         fontSize: 18,
         fontWeight: FontWeight.w600,
       ),
@@ -373,31 +510,31 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
-      style: const TextStyle(color: AppColors.textColor),
+      style: TextStyle(color: AppColors.of(context).textColor),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: AppColors.textSecondary),
-        prefixIcon: Icon(icon, color: AppColors.textSecondary),
+        labelStyle: TextStyle(color: AppColors.of(context).textSecondary),
+        prefixIcon: Icon(icon, color: AppColors.of(context).textSecondary),
       ),
       validator: validator,
     );
   }
 
   Widget _buildPaymentOption(
-      String method, String title, String subtitle) {
-    final isSelected = _paymentMethod == method;
+      String methodId, String title, String subtitle, {String? iconUrl}) {
+    final isSelected = _paymentMethodId == methodId;
     return GestureDetector(
-      onTap: () => setState(() => _paymentMethod = method),
+      onTap: () => setState(() => _paymentMethodId = methodId),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(16),
+        duration: Duration(milliseconds: 200),
+        padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.1)
-              : AppColors.glassBg,
+              ? AppColors.of(context).primary.withValues(alpha: 0.1)
+              : AppColors.of(context).glassBg,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.glassBorder,
+            color: isSelected ? AppColors.of(context).primary : AppColors.of(context).glassBorder,
             width: isSelected ? 1.5 : 0.5,
           ),
         ),
@@ -410,8 +547,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: isSelected
-                      ? AppColors.primary
-                      : AppColors.textSecondary,
+                      ? AppColors.of(context).primary
+                      : AppColors.of(context).textSecondary,
                   width: 2,
                 ),
               ),
@@ -420,36 +557,45 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       child: Container(
                         width: 10,
                         height: 10,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColors.primary,
+                          color: AppColors.of(context).primary,
                         ),
                       ),
                     )
                   : null,
             ),
+            if (iconUrl != null && iconUrl.isNotEmpty) ...[
+              const SizedBox(width: 12),
+              Image.network(iconUrl, width: 32, height: 32, errorBuilder: (_, e, s) => const Icon(Icons.payment)),
+            ] else ...[
+              const SizedBox(width: 12),
+              const Icon(Icons.payment),
+            ],
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: isSelected
-                        ? AppColors.primary
-                        : AppColors.textColor,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: isSelected
+                          ? AppColors.of(context).primary
+                          : AppColors.of(context).textColor,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: AppColors.of(context).textSecondary,
+                      fontSize: 12,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -457,3 +603,4 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 }
+
