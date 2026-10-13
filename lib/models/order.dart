@@ -13,9 +13,10 @@ class Order {
   List<OrderItem> items;
 
   // Top-level denormalized fields (stored as separate columns in DB)
-  final String? _customerName;
-  final String? _deliveryEmail;
-  final String? _phone;
+  final String? _rawCustomerName;
+  final String? _rawDeliveryEmail;
+  final String? _rawPhone;
+  final String? _rawDiscordUsername;
 
   Order({
     required this.id,
@@ -33,9 +34,11 @@ class Order {
     String? customerName,
     String? deliveryEmail,
     String? phone,
-  })  : _customerName = customerName,
-        _deliveryEmail = deliveryEmail,
-        _phone = phone;
+    String? discordUsername,
+  })  : _rawCustomerName = customerName,
+        _rawDeliveryEmail = deliveryEmail,
+        _rawPhone = phone,
+        _rawDiscordUsername = discordUsername;
 
   double getTotal(String currency) {
     return currency == 'BDT' ? totalBdt : totalUsd;
@@ -43,13 +46,18 @@ class Order {
 
   /// Falls back to shipping_address fields if top-level columns are null
   String? get deliveryEmail =>
-      _deliveryEmail ?? shippingAddress?['email'] as String?;
+      _rawDeliveryEmail ?? shippingAddress?['email'] as String?;
 
   String? get customerName =>
-      _customerName ?? shippingAddress?['name'] as String?;
+      _rawCustomerName ?? shippingAddress?['name'] as String?;
 
   String? get customerPhone =>
-      _phone ?? shippingAddress?['phone'] as String?;
+      _rawPhone ?? shippingAddress?['phone'] as String?;
+
+  String? get discordUsername =>
+      _rawDiscordUsername ??
+      shippingAddress?['discord'] as String? ??
+      shippingAddress?['discord_username'] as String?;
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
@@ -65,6 +73,7 @@ class Order {
       customerName: json['customer_name'] as String?,
       deliveryEmail: json['delivery_email'] as String?,
       phone: json['phone'] as String?,
+      discordUsername: json['discord_username'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
