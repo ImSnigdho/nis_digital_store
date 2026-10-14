@@ -228,13 +228,22 @@ class _DashboardOverview extends StatelessWidget {
                         child: Text(
                           CurrencyFormatter.format(order.totalBdt, 'BDT'),
                           style: TextStyle(color: AppColors.of(context).textColor, fontSize: 13),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      _buildStatusPill(context, order.status),
-                      const SizedBox(width: 8),
-                      Text(
-                        order.createdAt != null ? DateFormat('MMM d').format(order.createdAt!) : '',
-                        style: TextStyle(color: AppColors.of(context).textSecondary, fontSize: 12),
+                      Expanded(
+                        flex: 2,
+                        child: _buildStatusPill(context, order.status),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          order.createdAt != null ? DateFormat('MMM d').format(order.createdAt!) : '',
+                          style: TextStyle(color: AppColors.of(context).textSecondary, fontSize: 11),
+                          textAlign: TextAlign.right,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),

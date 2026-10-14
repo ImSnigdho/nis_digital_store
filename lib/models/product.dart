@@ -10,6 +10,7 @@ class Product {
   final List<String> images;
   final String? categoryId;
   final String? brand;
+  final int stock;
   final String status; // 'active', 'draft', 'inactive'
   final bool isFeatured;
   final String? thumbnailUrl;
@@ -33,6 +34,7 @@ class Product {
     this.images = const [],
     this.categoryId,
     this.brand,
+    this.stock = 0,
     this.status = 'active',
     this.isFeatured = false,
     this.thumbnailUrl,
@@ -55,6 +57,21 @@ class Product {
 
   bool get hasSalePrice => salePriceBdt != null && salePriceBdt! > 0;
 
+  double getActivePrice(String currency) {
+    if (hasSalePrice) {
+      return getSalePrice(currency)!;
+    }
+    return getPrice(currency);
+  }
+
+  int getDiscountPercent(String currency) {
+    if (!hasSalePrice) return 0;
+    final basePrice = getPrice(currency);
+    final salePrice = getSalePrice(currency)!;
+    if (basePrice <= 0) return 0;
+    return ((basePrice - salePrice) / basePrice * 100).round();
+  }
+
   String get primaryImage {
     if (thumbnailUrl != null && thumbnailUrl!.isNotEmpty) return thumbnailUrl!;
     return images.isNotEmpty
@@ -63,8 +80,7 @@ class Product {
   }
 
   // Keep backward compat
-  int get stock => 0;
-  bool get inStock => true; // Digital products always in stock
+  bool get inStock => stock > 0; // Digital products always in stock
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
@@ -81,6 +97,7 @@ class Product {
           : [],
       categoryId: json['category_id'] as String?,
       brand: json['brand'] as String?,
+      stock: (json['stock'] as num?)?.toInt() ?? 0,
       status: json['status'] as String? ?? 'active',
       isFeatured: json['is_featured'] as bool? ?? false,
       thumbnailUrl: json['thumbnail_url'] as String?,
@@ -112,6 +129,7 @@ class Product {
       'images': images,
       'category_id': categoryId,
       'brand': brand,
+      'stock': stock,
       'status': status,
       'is_featured': isFeatured,
       'thumbnail_url': thumbnailUrl,

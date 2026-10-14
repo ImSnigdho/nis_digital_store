@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../config/theme.dart';
 import '../../providers/product_provider.dart';
 import '../../models/product.dart';
+import '../../widgets/app_network_image.dart';
 
 class AdminAddProductScreen extends StatefulWidget {
   final Product? product; // null = create mode, non-null = edit mode
@@ -23,6 +24,7 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
   late TextEditingController _priceCtrl;
   late TextEditingController _salePriceCtrl;
   late TextEditingController _brandCtrl;
+  late TextEditingController _stockCtrl;
 
   String? _selectedCategoryId;
   String _status = 'active';
@@ -50,6 +52,7 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
     _priceCtrl = TextEditingController(text: p != null ? p.priceBdt.toStringAsFixed(2) : '');
     _salePriceCtrl = TextEditingController(text: p?.salePriceBdt?.toStringAsFixed(2) ?? '');
     _brandCtrl = TextEditingController(text: p?.brand ?? '');
+    _stockCtrl = TextEditingController(text: p?.stock.toString() ?? '0');
     _selectedCategoryId = p?.categoryId;
     _status = p?.status ?? 'active';
     _isFeatured = p?.isFeatured ?? false;
@@ -65,6 +68,7 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
     _priceCtrl.dispose();
     _salePriceCtrl.dispose();
     _brandCtrl.dispose();
+    _stockCtrl.dispose();
     super.dispose();
   }
 
@@ -136,6 +140,7 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
           thumbnailUrl: thumbUrl,
           fileUrl: prodFileUrl,
           brand: _brandCtrl.text.trim().isNotEmpty ? _brandCtrl.text.trim() : null,
+          stock: int.tryParse(_stockCtrl.text) ?? 0,
         );
       } else {
         await provider.createProduct(
@@ -152,6 +157,7 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
           thumbnailUrl: thumbUrl,
           fileUrl: prodFileUrl,
           brand: _brandCtrl.text.trim().isNotEmpty ? _brandCtrl.text.trim() : null,
+          stock: int.tryParse(_stockCtrl.text) ?? 0,
         );
       }
 
@@ -269,13 +275,16 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
                               (val) => setState(() => _status = val ?? 'active'),
                             ),
                             const SizedBox(height: 12),
-                            CheckboxListTile(
-                              value: _isFeatured,
-                              onChanged: (v) => setState(() => _isFeatured = v ?? false),
-                              title: Text('Featured Product', style: TextStyle(color: AppColors.of(context).textColor, fontSize: 14)),
-                              controlAffinity: ListTileControlAffinity.leading,
-                              dense: true,
-                              contentPadding: EdgeInsets.zero,
+                            Material(
+                              color: Colors.transparent,
+                              child: CheckboxListTile(
+                                value: _isFeatured,
+                                onChanged: (v) => setState(() => _isFeatured = v ?? false),
+                                title: Text('Featured Product', style: TextStyle(color: AppColors.of(context).textColor, fontSize: 14)),
+                                controlAffinity: ListTileControlAffinity.leading,
+                                dense: true,
+                                contentPadding: EdgeInsets.zero,
+                              ),
                             ),
                           ],
                         ),
@@ -288,7 +297,7 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
                   _buildTextField('Full Description *', _fullDescCtrl, maxLines: 6, validator: (v) => v == null || v.isEmpty ? 'Required' : null),
                   const SizedBox(height: 16),
 
-                  // Row 3: Price + Sale Price + Brand
+                  // Row 3: Price + Sale Price + Brand + Stock
                   Row(
                     children: [
                       Expanded(child: _buildTextField('Price (৳) *', _priceCtrl, keyboardType: TextInputType.number, validator: (v) => v == null || v.isEmpty ? 'Required' : null)),
@@ -296,6 +305,8 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
                       Expanded(child: _buildTextField('Sale Price (৳)', _salePriceCtrl, keyboardType: TextInputType.number)),
                       const SizedBox(width: 16),
                       Expanded(child: _buildTextField('Brand', _brandCtrl)),
+                      const SizedBox(width: 16),
+                      Expanded(child: _buildTextField('Stock *', _stockCtrl, keyboardType: TextInputType.number, validator: (v) => v == null || v.isEmpty ? 'Required' : null)),
                     ],
                   ),
                 ],
@@ -349,11 +360,12 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
                     ),
                   ] else if (_thumbnailUrl != null && _thumbnailUrl!.isNotEmpty) ...[
                     const SizedBox(height: 16),
-                    ClipRRect(
+                    AppNetworkImage(
+                      imageUrl: _thumbnailUrl!,
+                      height: 120,
+                      fit: BoxFit.cover,
+                      memCacheWidth: 240,
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(_thumbnailUrl!, height: 120, fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => const SizedBox(),
-                      ),
                     ),
                   ],
                 ],

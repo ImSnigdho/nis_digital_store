@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../../widgets/app_network_image.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../utils/currency_formatter.dart';
 import '../checkout/checkout_screen.dart';
+import '../../utils/smooth_page_route.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -101,21 +102,13 @@ class CartScreen extends StatelessWidget {
                       child: Row(
                         children: [
                           // Product image
-                          ClipRRect(
+                          AppNetworkImage(
+                            imageUrl: product?.primaryImage ?? '',
+                            width: 80,
+                            height: 80,
+                            memCacheWidth: 160,
+                            fit: BoxFit.cover,
                             borderRadius: BorderRadius.circular(12),
-                            child: CachedNetworkImage(
-                              imageUrl: product?.primaryImage ?? '',
-                              width: 80,
-                              height: 80,
-                              fit: BoxFit.cover,
-                              errorWidget: (context, url, error) => Container(
-                                width: 80,
-                                height: 80,
-                                color: AppColors.of(context).surface,
-                                child: Icon(Icons.image,
-                                    color: AppColors.of(context).textSecondary),
-                              ),
-                            ),
                           ),
                           const SizedBox(width: 12),
                           // Product info
@@ -262,9 +255,8 @@ class CartScreen extends StatelessWidget {
                             child: ElevatedButton(
                               onPressed: () {
                                 Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        const CheckoutScreen(),
+                                  SmoothPageRoute(
+                                    page: const CheckoutScreen(),
                                   ),
                                 );
                               },
@@ -299,17 +291,44 @@ class CartScreen extends StatelessWidget {
 
   Widget _buildQtyButton(BuildContext context,
       {required IconData icon, required VoidCallback onTap}) {
+    return _InteractiveQtyButton(icon: icon, onTap: onTap);
+  }
+}
+
+class _InteractiveQtyButton extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _InteractiveQtyButton({required this.icon, required this.onTap});
+
+  @override
+  State<_InteractiveQtyButton> createState() => _InteractiveQtyButtonState();
+}
+
+class _InteractiveQtyButtonState extends State<_InteractiveQtyButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 28,
-        height: 28,
-        decoration: BoxDecoration(
-          color: AppColors.of(context).glassBg,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.of(context).glassBorder),
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _isPressed ? 0.88 : 1.0,
+        duration: const Duration(milliseconds: 140),
+        curve: Curves.easeOutBack,
+        child: Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: AppColors.of(context).glassBg,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.of(context).glassBorder),
+          ),
+          child: Icon(widget.icon, color: AppColors.of(context).textColor, size: 14),
         ),
-        child: Icon(icon, color: AppColors.of(context).textColor, size: 14),
       ),
     );
   }

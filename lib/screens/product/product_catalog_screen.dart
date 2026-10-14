@@ -9,6 +9,7 @@ import '../../widgets/search_bar_widget.dart';
 import '../../widgets/category_chip.dart';
 import '../../widgets/shimmer_loading.dart';
 import '../product/product_detail_screen.dart';
+import '../../utils/smooth_page_route.dart';
 
 class ProductCatalogScreen extends StatefulWidget {
   const ProductCatalogScreen({super.key});
@@ -161,8 +162,8 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
                             onFavoriteTap: () => wishlist.toggleWishlist(product.id),
                             onTap: () {
                               Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => ProductDetailScreen(productId: product.id),
+                                SmoothPageRoute(
+                                  page: ProductDetailScreen(productId: product.id),
                                 ),
                               );
                             },

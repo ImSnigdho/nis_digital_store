@@ -77,6 +77,7 @@ class ProductService {
     String? thumbnailUrl,
     String? fileUrl,
     String? brand,
+    int stock = 0,
   }) async {
     final data = {
       'name': name,
@@ -92,6 +93,7 @@ class ProductService {
       'thumbnail_url': thumbnailUrl,
       'file_url': fileUrl,
       'brand': brand,
+      'stock': stock,
       'images': thumbnailUrl != null ? [thumbnailUrl] : [],
       'downloads_count': 0,
     };
@@ -120,6 +122,7 @@ class ProductService {
     String? thumbnailUrl,
     String? fileUrl,
     String? brand,
+    required int stock,
   }) async {
     final data = {
       'name': name,
@@ -135,6 +138,7 @@ class ProductService {
       'thumbnail_url': thumbnailUrl,
       'file_url': fileUrl,
       'brand': brand,
+      'stock': stock,
       'images': thumbnailUrl != null ? [thumbnailUrl] : [],
     };
 
@@ -247,5 +251,13 @@ class ProductService {
         .toList();
     brands.sort();
     return brands;
+  }
+  Future<int> getTotalSold(String productId) async {
+    try {
+      final response = await _client.rpc('get_total_sold', params: {'p_id': productId});
+      return (response as num).toInt();
+    } catch (e) {
+      return 0;
+    }
   }
 }

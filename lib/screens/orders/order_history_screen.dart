@@ -218,10 +218,23 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     Color color;
     IconData icon;
 
-    switch (status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+      case 'delivered':
+        color = AppColors.of(context).success;
+        icon = Icons.check_circle;
+        break;
       case 'pending':
         color = AppColors.of(context).warning;
         icon = Icons.schedule;
+        break;
+      case 'refunded':
+        color = Colors.blueGrey;
+        icon = Icons.replay;
+        break;
+      case 'cancelled':
+        color = AppColors.of(context).error;
+        icon = Icons.cancel_outlined;
         break;
       case 'confirmed':
         color = AppColors.of(context).primary;
@@ -230,14 +243,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       case 'shipped':
         color = AppColors.of(context).accent;
         icon = Icons.local_shipping_outlined;
-        break;
-      case 'delivered':
-        color = AppColors.of(context).success;
-        icon = Icons.check_circle;
-        break;
-      case 'cancelled':
-        color = AppColors.of(context).error;
-        icon = Icons.cancel_outlined;
         break;
       default:
         color = AppColors.of(context).textSecondary;

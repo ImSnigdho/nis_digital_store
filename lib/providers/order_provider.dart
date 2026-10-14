@@ -56,9 +56,11 @@ class OrderProvider extends ChangeNotifier {
       await loadAllOrders();
     } catch (e) {
       _error = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-    _isLoading = false;
-    notifyListeners();
   }
 
   Future<Order?> placeOrder({

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../models/payment_method.dart';
@@ -8,6 +9,7 @@ import '../../providers/order_provider.dart';
 import '../../services/payment_method_service.dart';
 import '../../services/promo_code_service.dart';
 import '../../utils/currency_formatter.dart';
+import '../../widgets/app_network_image.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -379,11 +381,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             const SizedBox(height: 12),
             _buildTextField(
               controller: _phoneController,
-              label: 'Phone Number',
+              label: 'Phone Number (11 digits)',
+              hintText: '01XXXXXXXXX',
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
-              validator: (v) =>
-                  v == null || v.isEmpty ? 'Phone is required' : null,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(11),
+              ],
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Phone number is required';
+                final clean = v.replaceAll(RegExp(r'\D'), '');
+                if (clean.length != 11) {
+                  return 'Phone number must be exactly 11 digits';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 12),
             _buildTextField(
@@ -435,13 +448,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 );
               }),
             const SizedBox(height: 16),
-            const SizedBox(height: 16),
             _buildTextField(
               controller: _paymentRefController,
-              label: 'Transaction ID / Reference',
+              label: 'Transaction ID / Reference (10 digits)',
+              hintText: '10-digit Trx ID',
               icon: Icons.receipt_long_outlined,
-              validator: (v) =>
-                  v == null || v.isEmpty ? 'Payment reference is required' : null,
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(10),
+              ],
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Payment reference is required';
+                final clean = v.trim();
+                if (clean.length != 10) {
+                  return 'Transaction ID must be exactly 10 digits';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 32),
 
@@ -504,15 +526,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     required IconData icon,
     TextInputType? keyboardType,
     int maxLines = 1,
+    List<TextInputFormatter>? inputFormatters,
+    String? hintText,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       maxLines: maxLines,
       style: TextStyle(color: AppColors.of(context).textColor),
       decoration: InputDecoration(
         labelText: label,
+        hintText: hintText,
+        hintStyle: TextStyle(
+            color: AppColors.of(context).textSecondary.withValues(alpha: 0.6)),
         labelStyle: TextStyle(color: AppColors.of(context).textSecondary),
         prefixIcon: Icon(icon, color: AppColors.of(context).textSecondary),
       ),
@@ -567,7 +595,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             if (iconUrl != null && iconUrl.isNotEmpty) ...[
               const SizedBox(width: 12),
-              Image.network(iconUrl, width: 32, height: 32, errorBuilder: (_, e, s) => const Icon(Icons.payment)),
+              AppNetworkImage(
+                imageUrl: iconUrl,
+                width: 32,
+                height: 32,
+                memCacheWidth: 64,
+                memCacheHeight: 64,
+                errorWidget: const Icon(Icons.payment),
+              ),
             ] else ...[
               const SizedBox(width: 12),
               const Icon(Icons.payment),

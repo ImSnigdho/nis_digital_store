@@ -16,6 +16,7 @@ import '../cart/cart_screen.dart';
 import '../wishlist/wishlist_screen.dart';
 import '../profile/profile_screen.dart';
 import '../../providers/store_provider.dart';
+import '../../utils/smooth_page_route.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -65,9 +66,20 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 250),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+        child: KeyedSubtree(
+          key: ValueKey<int>(_currentIndex),
+          child: screens[_currentIndex],
+        ),
       ),
       bottomNavigationBar: Consumer2<CartProvider, WishlistProvider>(
         builder: (context, cart, wishlist, _) {
@@ -131,25 +143,43 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [AppColors.of(context).primary, AppColors.of(context).accent],
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF5DB3DE),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          width: 1.5,
                         ),
-                        borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.of(context).primary.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
+                            color: const Color(0xFF0284C7).withValues(alpha: 0.4),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
                           ),
                         ],
                       ),
-                      child: const Center(
-                        child: Text(
-                          'N',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
+                      child: ClipOval(
+                        child: Image.asset(
+                          'icons/icon1.png',
+                          width: 44,
+                          height: 44,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [AppColors.of(context).primary, AppColors.of(context).accent],
+                              ),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'N',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -262,10 +292,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         .toggleWishlist(product.id),
                                     onTap: () {
                                       Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              ProductDetailScreen(
-                                                  productId: product.id),
+                                        SmoothPageRoute(
+                                          page: ProductDetailScreen(
+                                              productId: product.id),
                                         ),
                                       );
                                     },
@@ -356,8 +385,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   wishlist.toggleWishlist(product.id),
                               onTap: () {
                                 Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => ProductDetailScreen(
+                                  SmoothPageRoute(
+                                    page: ProductDetailScreen(
                                         productId: product.id),
                                   ),
                                 );

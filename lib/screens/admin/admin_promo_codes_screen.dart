@@ -112,8 +112,11 @@ class _AdminPromoCodesScreenState extends State<AdminPromoCodesScreen> {
           // Header
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(
                   'Promo Codes',
@@ -132,6 +135,8 @@ class _AdminPromoCodesScreenState extends State<AdminPromoCodesScreen> {
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                   ),
                 ),
               ],
@@ -165,114 +170,294 @@ class _AdminPromoCodesScreenState extends State<AdminPromoCodesScreen> {
                           ],
                         ),
                       )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 8),
-                        itemCount: _promoCodes.length,
-                        itemBuilder: (context, index) {
-                          final promo = _promoCodes[index];
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 10),
+                    : LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isMobile = constraints.maxWidth < 620;
+
+                          return ListView.builder(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 14),
-                            decoration: GlassDecoration(context: context),
-                            child: Row(
-                              children: [
-                                // Code
-                                Expanded(
-                                  flex: 2,
+                                horizontal: 20, vertical: 8),
+                            itemCount: _promoCodes.length,
+                            itemBuilder: (context, index) {
+                              final promo = _promoCodes[index];
+
+                              if (isMobile) {
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: GlassDecoration(context: context),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        promo.code,
-                                        style: TextStyle(
-                                            color: AppColors.of(context).primary,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                            letterSpacing: 1),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Wrap(
+                                              spacing: 8,
+                                              runSpacing: 4,
+                                              crossAxisAlignment:
+                                                  WrapCrossAlignment.center,
+                                              children: [
+                                                Text(
+                                                  promo.code,
+                                                  style: TextStyle(
+                                                      color:
+                                                          AppColors.of(context)
+                                                              .primary,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16,
+                                                      letterSpacing: 1),
+                                                ),
+                                                Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.of(context)
+                                                        .success
+                                                        .withValues(alpha: 0.15),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            6),
+                                                  ),
+                                                  child: Text(
+                                                    _discountLabel(promo),
+                                                    style: TextStyle(
+                                                        color: AppColors.of(
+                                                                context)
+                                                            .success,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        fontSize: 12),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Switch(
+                                            value: promo.isActive,
+                                            activeThumbColor:
+                                                AppColors.of(context).primary,
+                                            onChanged: (val) async {
+                                              try {
+                                                await _service.toggleActive(
+                                                    promo.id, val);
+                                                _fetch();
+                                              } catch (e) {
+                                                _showError(
+                                                    'Toggle failed: $e');
+                                              }
+                                            },
+                                          ),
+                                        ],
                                       ),
-                                      if (promo.expiresAt != null)
-                                        Text(
-                                          'Expires ${DateFormat('MMM d, yyyy').format(promo.expiresAt!)}',
-                                          style: TextStyle(
-                                              color: promo.expiresAt!
-                                                      .isBefore(DateTime.now())
-                                                  ? AppColors.of(context).error
-                                                  : AppColors.of(context)
-                                                      .textSecondary,
-                                              fontSize: 11),
-                                        ),
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Wrap(
+                                              spacing: 12,
+                                              runSpacing: 4,
+                                              children: [
+                                                Text(
+                                                  'Used: ${promo.timesUsed}/${promo.usageLimit ?? '∞'}',
+                                                  style: TextStyle(
+                                                      color:
+                                                          AppColors.of(context)
+                                                              .textColor,
+                                                      fontSize: 12),
+                                                ),
+                                                if (promo.minOrderAmount > 0)
+                                                  Text(
+                                                    'Min: ${promo.minOrderAmount.toStringAsFixed(0)}',
+                                                    style: TextStyle(
+                                                        color: AppColors.of(
+                                                                context)
+                                                            .textSecondary,
+                                                        fontSize: 12),
+                                                  ),
+                                                if (promo.expiresAt != null)
+                                                  Text(
+                                                    'Expires ${DateFormat('MMM d, yyyy').format(promo.expiresAt!)}',
+                                                    style: TextStyle(
+                                                        color: promo.expiresAt!
+                                                                .isBefore(
+                                                                    DateTime
+                                                                        .now())
+                                                            ? AppColors.of(
+                                                                    context)
+                                                                .error
+                                                            : AppColors.of(
+                                                                    context)
+                                                                .textSecondary,
+                                                        fontSize: 12),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              IconButton(
+                                                icon: Icon(Icons.edit,
+                                                    color: AppColors.of(context)
+                                                        .primary,
+                                                    size: 20),
+                                                onPressed: () =>
+                                                    _openDialog(promo: promo),
+                                                padding:
+                                                    const EdgeInsets.all(4),
+                                                constraints:
+                                                    const BoxConstraints(),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              IconButton(
+                                                icon: Icon(Icons.delete,
+                                                    color: AppColors.of(context)
+                                                        .error,
+                                                    size: 20),
+                                                onPressed: () => _delete(promo),
+                                                padding:
+                                                    const EdgeInsets.all(4),
+                                                constraints:
+                                                    const BoxConstraints(),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ],
                                   ),
-                                ),
-                                // Discount
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    _discountLabel(promo),
-                                    style: TextStyle(
-                                        color: AppColors.of(context).success,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14),
-                                  ),
-                                ),
-                                // Usage
-                                Expanded(
-                                  flex: 2,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                          'Used: ${promo.timesUsed}/${promo.usageLimit ?? '∞'}',
-                                          style: TextStyle(
-                                              color: AppColors.of(context)
-                                                  .textColor,
-                                              fontSize: 13)),
-                                      if (promo.minOrderAmount > 0)
-                                        Text(
-                                            'Min order: ${promo.minOrderAmount.toStringAsFixed(0)}',
+                                );
+                              }
+
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 14),
+                                decoration: GlassDecoration(context: context),
+                                child: Row(
+                                  children: [
+                                    // Code
+                                    Expanded(
+                                      flex: 2,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            promo.code,
                                             style: TextStyle(
                                                 color: AppColors.of(context)
-                                                    .textSecondary,
-                                                fontSize: 11)),
-                                    ],
-                                  ),
+                                                    .primary,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                                letterSpacing: 1),
+                                          ),
+                                          if (promo.expiresAt != null)
+                                            Text(
+                                              'Expires ${DateFormat('MMM d, yyyy').format(promo.expiresAt!)}',
+                                              style: TextStyle(
+                                                  color: promo.expiresAt!
+                                                          .isBefore(
+                                                              DateTime.now())
+                                                      ? AppColors.of(context)
+                                                          .error
+                                                      : AppColors.of(context)
+                                                          .textSecondary,
+                                                  fontSize: 11),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    // Discount
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        _discountLabel(promo),
+                                        style: TextStyle(
+                                            color:
+                                                AppColors.of(context).success,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14),
+                                      ),
+                                    ),
+                                    // Usage
+                                    Expanded(
+                                      flex: 2,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Used: ${promo.timesUsed}/${promo.usageLimit ?? '∞'}',
+                                            style: TextStyle(
+                                                color: AppColors.of(context)
+                                                    .textColor,
+                                                fontSize: 13),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          if (promo.minOrderAmount > 0)
+                                            Text(
+                                              'Min order: ${promo.minOrderAmount.toStringAsFixed(0)}',
+                                              style: TextStyle(
+                                                  color: AppColors.of(context)
+                                                      .textSecondary,
+                                                  fontSize: 11),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    // Actions
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Switch(
+                                          value: promo.isActive,
+                                          activeThumbColor:
+                                              AppColors.of(context).primary,
+                                          onChanged: (val) async {
+                                            try {
+                                              await _service.toggleActive(
+                                                  promo.id, val);
+                                              _fetch();
+                                            } catch (e) {
+                                              _showError('Toggle failed: $e');
+                                            }
+                                          },
+                                        ),
+                                        IconButton(
+                                          icon: Icon(Icons.edit,
+                                              color:
+                                                  AppColors.of(context).primary,
+                                              size: 20),
+                                          onPressed: () =>
+                                              _openDialog(promo: promo),
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        IconButton(
+                                          icon: Icon(Icons.delete,
+                                              color:
+                                                  AppColors.of(context).error,
+                                              size: 20),
+                                          onPressed: () => _delete(promo),
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                                // Toggle
-                                Switch(
-                                  value: promo.isActive,
-                                  activeThumbColor: AppColors.of(context).primary,
-                                  onChanged: (val) async {
-                                    try {
-                                      await _service.toggleActive(promo.id, val);
-                                      _fetch();
-                                    } catch (e) {
-                                      _showError('Toggle failed: $e');
-                                    }
-                                  },
-                                ),
-                                // Edit
-                                IconButton(
-                                  icon: Icon(Icons.edit,
-                                      color: AppColors.of(context).primary,
-                                      size: 20),
-                                  onPressed: () => _openDialog(promo: promo),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                ),
-                                const SizedBox(width: 8),
-                                // Delete
-                                IconButton(
-                                  icon: Icon(Icons.delete,
-                                      color: AppColors.of(context).error,
-                                      size: 20),
-                                  onPressed: () => _delete(promo),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                ),
-                              ],
-                            ),
+                              );
+                            },
                           );
                         },
                       ),

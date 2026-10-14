@@ -1,15 +1,77 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../screens/auth/login_screen.dart';
 import '../../screens/orders/order_history_screen.dart';
+import '../../widgets/app_network_image.dart';
 import 'edit_profile_screen.dart';
+import '../../utils/smooth_page_route.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  bool _isUploadingAvatar = false;
+
+  Future<void> _pickAndUploadAvatar() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        withData: true,
+      );
+      if (result != null && result.files.isNotEmpty && result.files.single.bytes != null) {
+        setState(() => _isUploadingAvatar = true);
+        final file = result.files.single;
+        if (!mounted) return;
+        final auth = context.read<AuthProvider>();
+        await auth.uploadAndSetAvatar(file.bytes!, file.name);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Profile picture updated successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to upload picture: $e'),
+            backgroundColor: AppColors.of(context).error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isUploadingAvatar = false);
+      }
+    }
+  }
+
+  Widget _buildInitials(dynamic profile) {
+    final name = profile?.fullName?.toString().trim();
+    final letter = (name != null && name.isNotEmpty) ? name.substring(0, 1).toUpperCase() : 'U';
+    return Center(
+      child: Text(
+        letter,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 42,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,51 +107,101 @@ class ProfileScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     Stack(
-                      alignment: Alignment.bottomRight,
+                      clipBehavior: Clip.none,
                       children: [
-                        Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [AppColors.of(context).primary, AppColors.of(context).accent],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.of(context).primary.withValues(alpha: 0.3),
-                                blurRadius: 15,
-                                spreadRadius: 2,
+                        GestureDetector(
+                          onTap: _isUploadingAvatar ? null : _pickAndUploadAvatar,
+                          child: Container(
+                            width: 104,
+                            height: 104,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [AppColors.of(context).primary, AppColors.of(context).accent],
                               ),
-                            ],
-                            image: avatarUrl != null
-                                ? DecorationImage(
-                                    image: NetworkImage(avatarUrl),
-                                    fit: BoxFit.cover,
-                                  )
-                                : null,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.of(context).primary.withValues(alpha: 0.3),
+                                  blurRadius: 15,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                            child: ClipOval(
+                              child: _isUploadingAvatar
+                                  ? Container(
+                                      color: Colors.black45,
+                                      child: const Center(
+                                        child: SizedBox(
+                                          width: 28,
+                                          height: 28,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.5,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : (avatarUrl != null && avatarUrl.trim().isNotEmpty)
+                                      ? AppNetworkImage(
+                                          imageUrl: avatarUrl,
+                                          fit: BoxFit.cover,
+                                          width: 104,
+                                          height: 104,
+                                          memCacheWidth: 220,
+                                          memCacheHeight: 220,
+                                          errorWidget: _buildInitials(profile),
+                                        )
+                                      : _buildInitials(profile),
+                            ),
                           ),
-                          child: avatarUrl == null
-                              ? Center(
-                                  child: Text(
-                                    (profile?.fullName ?? 'U').substring(0, 1).toUpperCase(),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 40,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                        ),
+                        // Camera upload icon button at bottom right
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: _isUploadingAvatar ? null : _pickAndUploadAvatar,
+                            child: Container(
+                              padding: const EdgeInsets.all(7),
+                              decoration: BoxDecoration(
+                                color: AppColors.of(context).primary,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Theme.of(context).scaffoldBackgroundColor,
+                                  width: 2.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    blurRadius: 4,
                                   ),
-                                )
-                              : null,
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                          ),
                         ),
                         if (auth.isAdmin)
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: AppColors.of(context).error,
-                              shape: BoxShape.circle,
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: AppColors.of(context).error,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Theme.of(context).scaffoldBackgroundColor,
+                                  width: 2,
+                                ),
+                              ),
+                              child: const Icon(Icons.admin_panel_settings, color: Colors.white, size: 16),
                             ),
-                            child: const Icon(Icons.admin_panel_settings, color: Colors.white, size: 16),
                           )
                       ],
                     ),
@@ -267,7 +379,7 @@ class ProfileScreen extends StatelessWidget {
                 subtitle: 'View your past orders',
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const OrderHistoryScreen()),
+                    SmoothPageRoute(page: const OrderHistoryScreen()),
                   );
                 },
               ),
@@ -279,7 +391,7 @@ class ProfileScreen extends StatelessWidget {
                 subtitle: 'Update your information',
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                    SmoothPageRoute(page: const EditProfileScreen()),
                   );
                 },
               ),

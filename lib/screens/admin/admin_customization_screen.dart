@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../config/theme.dart';
 import '../../providers/store_provider.dart';
+import '../../widgets/app_network_image.dart';
 import 'admin_payment_methods_screen.dart';
 
 class AdminCustomizationScreen extends StatelessWidget {
@@ -167,11 +168,13 @@ class AdminCustomizationScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (storeProvider.bannerUrl.isNotEmpty)
-                ClipRRect(
+                AppNetworkImage(
+                  imageUrl: storeProvider.bannerUrl,
+                  height: 120,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 600,
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(storeProvider.bannerUrl,
-                      height: 120, width: double.infinity, fit: BoxFit.cover,
-                      errorBuilder: (_, e, s) => const SizedBox()),
                 ),
               if (bytes != null)
                 ClipRRect(
@@ -272,30 +275,35 @@ class AdminCustomizationScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: GlassDecoration(context: context),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.of(context).primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          leading: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.of(context).primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: AppColors.of(context).primary),
           ),
-          child: Icon(icon, color: AppColors.of(context).primary),
+          title: Text(title,
+              style: TextStyle(
+                  color: Theme.of(context).textTheme.headlineLarge?.color,
+                  fontWeight: FontWeight.w600)),
+          subtitle: Text(subtitle,
+              style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyMedium?.color)),
+          trailing:
+              Icon(Icons.chevron_right, color: AppColors.of(context).textSecondary),
+          onTap: onTap ??
+              () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('$title coming soon!')),
+                );
+              },
         ),
-        title: Text(title,
-            style: TextStyle(
-                color: Theme.of(context).textTheme.headlineLarge?.color,
-                fontWeight: FontWeight.w600)),
-        subtitle: Text(subtitle,
-            style: TextStyle(
-                color: Theme.of(context).textTheme.bodyMedium?.color)),
-        trailing:
-            Icon(Icons.chevron_right, color: AppColors.of(context).textSecondary),
-        onTap: onTap ??
-            () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('$title coming soon!')),
-              );
-            },
       ),
     );
   }

@@ -6,6 +6,7 @@ import '../../providers/wishlist_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../widgets/product_card.dart';
 import '../product/product_detail_screen.dart';
+import '../../utils/smooth_page_route.dart';
 
 class WishlistScreen extends StatelessWidget {
   const WishlistScreen({super.key});
@@ -91,8 +92,8 @@ class WishlistScreen extends StatelessWidget {
                             wishlist.toggleWishlist(product.id),
                         onTap: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => ProductDetailScreen(
+                            SmoothPageRoute(
+                              page: ProductDetailScreen(
                                   productId: product.id),
                             ),
                           );

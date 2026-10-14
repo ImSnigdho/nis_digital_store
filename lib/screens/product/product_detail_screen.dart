@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../../widgets/app_network_image.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/wishlist_provider.dart';
+import '../../services/product_service.dart';
 import '../../utils/currency_formatter.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -21,10 +22,12 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _selectedImageIndex = 0;
   int _quantity = 1;
+  late Future<int> _totalSoldFuture;
 
   @override
   void initState() {
     super.initState();
+    _totalSoldFuture = ProductService().getTotalSold(widget.productId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductProvider>().selectProduct(widget.productId);
     });
@@ -55,11 +58,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.45,
                           width: double.infinity,
-                          child: CachedNetworkImage(
+                          child: AppNetworkImage(
                             imageUrl: product.images.isNotEmpty
                                 ? product.images[_selectedImageIndex]
                                 : product.primaryImage,
                             fit: BoxFit.cover,
+                            memCacheWidth: 900,
                           ),
                         ),
                         // Gradient overlay
@@ -184,44 +188,89 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                           const SizedBox(height: 12),
 
-                          // Rating + Reviews
-                          Row(
-                            children: [
-                              ...List.generate(5, (index) {
-                                return Icon(
-                                  index < product.rating.floor()
-                                      ? Icons.star
-                                      : index < product.rating
-                                          ? Icons.star_half
-                                          : Icons.star_border,
-                                  color: Colors.amber,
-                                  size: 20,
-                                );
-                              }),
-                              const SizedBox(width: 8),
-                              Text(
-                                '${product.rating} (${product.reviewCount} reviews)',
-                                style: TextStyle(
-                                  color: AppColors.of(context).textSecondary,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
+                          // Stock & Sold Info
+                          FutureBuilder<int>(
+                            future: _totalSoldFuture,
+                            builder: (context, snapshot) {
+                              return Row(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: product.stock > 0 ? AppColors.of(context).success.withValues(alpha: 0.1) : AppColors.of(context).error.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      product.stock > 0 ? '${product.stock} in stock' : 'Out of stock',
+                                      style: TextStyle(
+                                        color: product.stock > 0 ? AppColors.of(context).success : AppColors.of(context).error,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    '${snapshot.data ?? 0} sold',
+                                    style: TextStyle(
+                                      color: AppColors.of(context).textSecondary,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                           const SizedBox(height: 16),
 
                           // Price
                           Consumer<AuthProvider>(
                             builder: (context, auth, _) {
-                              return Text(
-                                CurrencyFormatter.format(
-                                    product.getPrice(auth.currency),
-                                    auth.currency),
-                                style: TextStyle(
-                                  color: AppColors.of(context).primary,
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (product.hasSalePrice)
+                                    Row(
+                                      children: [
+                                        Text(
+                                          CurrencyFormatter.format(
+                                              product.getPrice(auth.currency),
+                                              auth.currency),
+                                          style: TextStyle(
+                                            color: AppColors.of(context).textSecondary,
+                                            fontSize: 16,
+                                            decoration: TextDecoration.lineThrough,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.redAccent.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            '${product.getDiscountPercent(auth.currency)}% OFF',
+                                            style: const TextStyle(
+                                              color: Colors.redAccent,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  Text(
+                                    CurrencyFormatter.format(
+                                        product.getActivePrice(auth.currency),
+                                        auth.currency),
+                                    style: TextStyle(
+                                      color: AppColors.of(context).primary,
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
                               );
                             },
                           ),
@@ -448,21 +497,71 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     required VoidCallback onTap,
     Color? color,
   }) {
-    return GestureDetector(
+    return _InteractiveGlassButton(
+      icon: icon,
       onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.of(context).glassBorder),
+      color: color,
+    );
+  }
+}
+
+class _InteractiveGlassButton extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final Color? color;
+
+  const _InteractiveGlassButton({
+    required this.icon,
+    required this.onTap,
+    this.color,
+  });
+
+  @override
+  State<_InteractiveGlassButton> createState() => _InteractiveGlassButtonState();
+}
+
+class _InteractiveGlassButtonState extends State<_InteractiveGlassButton> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final scale = _isPressed ? 0.90 : (_isHovered ? 1.08 : 1.0);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: scale,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOutCubic,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: _isHovered
+                      ? Colors.black.withValues(alpha: 0.5)
+                      : Colors.black.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _isHovered
+                        ? AppColors.of(context).primary.withValues(alpha: 0.6)
+                        : AppColors.of(context).glassBorder,
+                  ),
+                ),
+                child: Icon(widget.icon, color: widget.color ?? Colors.white, size: 20),
+              ),
             ),
-            child: Icon(icon, color: color ?? Colors.white, size: 20),
           ),
         ),
       ),

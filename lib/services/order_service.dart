@@ -73,6 +73,19 @@ class OrderService {
     totalBdt = (totalBdt - discountAmount).clamp(0, double.infinity);
 
     // Create the order with all customer fields denormalized for admin visibility
+    // Fetch the customer's discord_username from their profile
+    String? discordUsername;
+    try {
+      final profileRes = await _client
+          .from('profiles')
+          .select('discord_username')
+          .eq('id', _userId)
+          .maybeSingle();
+      discordUsername = profileRes?['discord_username'] as String?;
+    } catch (_) {
+      // Ignore – discord is optional
+    }
+
     final orderResponse = await _client
         .from('orders')
         .insert({
@@ -89,6 +102,7 @@ class OrderService {
           'customer_name': shippingAddress['name'],
           'delivery_email': shippingAddress['email'],
           'phone': shippingAddress['phone'],
+          'discord_username': discordUsername,
           'promo_code_id': promoCodeId,
           'discount_amount': discountAmount,
         })

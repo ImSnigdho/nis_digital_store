@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/auth_service.dart';
@@ -46,7 +47,41 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> loadProfile() async {
     _profile = await _profileService.getProfile();
+
+    // Default the avatar to the picture from Google OAuth if signed in via Google
+    // and profile avatar is not yet set.
+    if (_profile != null &&
+        (_profile!.avatarUrl == null || _profile!.avatarUrl!.trim().isEmpty)) {
+      final userMeta = _user?.userMetadata;
+      final googlePhoto = userMeta?['avatar_url'] as String? ??
+          userMeta?['picture'] as String?;
+      if (googlePhoto != null && googlePhoto.trim().isNotEmpty) {
+        try {
+          _profile = await _profileService.updateProfile(
+            _profile!.copyWith(avatarUrl: googlePhoto.trim()),
+          );
+        } catch (_) {}
+      }
+    }
+
     notifyListeners();
+  }
+
+  Future<String> uploadAndSetAvatar(Uint8List bytes, String fileName) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final avatarUrl = await _profileService.uploadAvatar(bytes, fileName);
+      if (_profile != null) {
+        _profile = await _profileService.updateProfile(
+          _profile!.copyWith(avatarUrl: avatarUrl),
+        );
+      }
+      return avatarUrl;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<bool> signUp({
@@ -60,12 +95,16 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _authService.signUp(
+      final response = await _authService.signUp(
         email: email,
         password: password,
         fullName: fullName,
         country: country,
       );
+      _user = response.user ?? _authService.currentUser;
+      if (_user != null) {
+        await loadProfile();
+      }
       _isLoading = false;
       notifyListeners();
       return true;
@@ -86,7 +125,9 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _authService.signIn(email: email, password: password);
+      final response = await _authService.signIn(email: email, password: password);
+      _user = response.user ?? _authService.currentUser;
+      await loadProfile();
       _isLoading = false;
       notifyListeners();
       return true;
@@ -104,7 +145,14 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _authService.signInWithGoogle();
+      final success = await _authService.signInWithGoogle();
+      if (!success) {
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+      _user = _authService.currentUser;
+      await loadProfile();
       _isLoading = false;
       notifyListeners();
       return true;

@@ -7,6 +7,8 @@ import '../home/home_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
 import 'register_screen.dart';
 import 'complete_profile_screen.dart';
+import '../../widgets/welcome_logo.dart';
+import '../../widgets/ambient_side_gradient_background.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -59,24 +61,93 @@ class _LoginScreenState extends State<LoginScreen> {
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
       }
-    } else if (mounted && authProvider.error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.error!),
-          backgroundColor: AppColors.of(context).error,
-        ),
-      );
+    } else if (mounted) {
+      final rawError = authProvider.error ?? 'Invalid email or password';
+      final lower = rawError.toLowerCase();
+      final isInvalidCreds = lower.contains('invalid') ||
+          lower.contains('credential') ||
+          lower.contains('not found') ||
+          lower.contains('no user');
+
+      if (isInvalidCreds) {
+        final typedEmail = _emailController.text.trim();
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => RegisterScreen(
+              initialEmail: typedEmail,
+              redirectMessage: 'No account found with $typedEmail. Please sign up to create your account!',
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_cleanAuthError(rawError)),
+            backgroundColor: AppColors.of(context).error,
+          ),
+        );
+      }
     }
+  }
+
+  String _cleanAuthError(String error) {
+    final lower = error.toLowerCase();
+    if (lower.contains('sign_in_failed') && (lower.contains('10') || lower.contains('developer_error'))) {
+      return 'Google Sign-In SHA-1 mismatch (Error 10). Please add the release SHA-1 to Google Cloud Console.';
+    }
+    if (lower.contains('email logins are disabled') ||
+        lower.contains('email signups are disabled') ||
+        lower.contains('email_provider_disabled')) {
+      return 'Email authentication is disabled in Supabase. Please enable Email Provider in Supabase Dashboard.';
+    }
+    if (lower.contains('invalid') &&
+        (lower.contains('credential') ||
+            lower.contains('login') ||
+            lower.contains('password') ||
+            lower.contains('grant'))) {
+      return 'Invalid email or password.';
+    }
+    if (lower.contains('email not confirmed')) {
+      return 'Please confirm your email address or try signing up.';
+    }
+    if (lower.contains('rate') && lower.contains('limit')) {
+      return 'Too many login attempts. Please wait a minute before trying again.';
+    }
+    if (lower.contains('network') ||
+        lower.contains('socket') ||
+        lower.contains('failed host lookup')) {
+      return 'Network connection error. Please check your internet.';
+    }
+    final match = RegExp(r'message:\s*([^,)]+)').firstMatch(error);
+    if (match != null) {
+      final extracted = match.group(1)?.trim();
+      if (extracted != null && extracted.isNotEmpty) return extracted;
+    }
+    return error.replaceAll('Exception:', '').replaceAll('AuthApiException:', '').trim();
   }
 
   Future<void> _handleGoogleSignIn() async {
     final authProvider = context.read<AuthProvider>();
     final success = await authProvider.signInWithGoogle();
 
-    if (!success && mounted && authProvider.error != null) {
+    if (success && mounted) {
+      if (!authProvider.isProfileComplete) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const CompleteProfileScreen()),
+          (route) => false,
+        );
+      } else {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (route) => false,
+        );
+      }
+    } else if (!success && mounted && authProvider.error != null) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.error!),
+          content: Text(_cleanAuthError(authProvider.error!)),
           backgroundColor: AppColors.of(context).error,
         ),
       );
@@ -86,17 +157,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF1E293B),
-              Color(0xFF0F172A),
-            ],
-          ),
-        ),
+      backgroundColor: const Color(0xFF0F172A),
+      body: AmbientSideGradientBackground(
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -104,36 +166,9 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [AppColors.of(context).primary, AppColors.of(context).accent],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.of(context).primary.withValues(alpha: 0.3),
-                          blurRadius: 20,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'NIS',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 3,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
+                  // Welcome Logo with circular icon1.png & breathing pulse
+                  const WelcomeLogo(size: 84),
+                  const SizedBox(height: 28),
                   Text(
                     'Welcome Back',
                     style: Theme.of(context).textTheme.headlineLarge,

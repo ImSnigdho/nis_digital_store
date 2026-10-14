@@ -21,19 +21,27 @@ class CategoryChip extends StatefulWidget {
 
 class _CategoryChipState extends State<CategoryChip> {
   bool _isHovered = false;
+  bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
+    final scale = _isPressed ? 0.94 : (_isHovered ? 1.05 : 1.0);
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
         onTap: widget.onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          transform: Matrix4.diagonal3Values(_isHovered ? 1.05 : 1.0, _isHovered ? 1.05 : 1.0, 1.0),
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          transform: Matrix4.diagonal3Values(scale, scale, 1.0),
+          alignment: FractionalOffset.center,
           decoration: BoxDecoration(
             color: widget.isSelected
                 ? AppColors.of(context).primary.withValues(alpha: 0.3)

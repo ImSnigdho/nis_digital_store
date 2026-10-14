@@ -46,3 +46,20 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Keystore & Android signing secrets
+*.jks
+*.keystore
+key.properties
+**/key.properties
+
+# Secrets & Environment configs
+.env
+.env.*
+lib/config/env.dart
+
+# Build artifacts & APKs
+*.apk
+*.aab
+/android/build/
+NIS_Digital_Store_*.apk

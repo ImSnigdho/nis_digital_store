@@ -79,19 +79,31 @@ class CustomBottomNavBar extends StatelessWidget {
       onTap: () => onTap(index),
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutBack,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.of(context).primary.withValues(alpha: 0.15)
+              ? AppColors.of(context).primary.withValues(alpha: 0.16)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
+          border: isSelected
+              ? Border.all(
+                  color: AppColors.of(context).primary.withValues(alpha: 0.3),
+                  width: 1,
+                )
+              : null,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            iconWidget,
-            SizedBox(height: 4),
+            AnimatedScale(
+              scale: isSelected ? 1.12 : 1.0,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutBack,
+              child: iconWidget,
+            ),
+            const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../config/theme.dart';
+import '../../models/profile.dart';
 import '../../providers/auth_provider.dart';
 import '../home/home_screen.dart';
 
@@ -54,8 +57,15 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     final auth = context.read<AuthProvider>();
     
     // Create updated profile
-    final currentProfile = auth.profile;
-    if (currentProfile == null) return;
+    final userId = auth.user?.id ?? Supabase.instance.client.auth.currentUser?.id ?? '';
+    final currentProfile = auth.profile ??
+        Profile(
+          id: userId,
+          fullName: _nameController.text.trim(),
+          country: _selectedCountry,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
 
     final updatedProfile = currentProfile.copyWith(
       fullName: _nameController.text.trim(),
@@ -135,12 +145,26 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(11),
+                  ],
                   style: TextStyle(color: AppColors.of(context).textColor),
                   decoration: const InputDecoration(
-                    labelText: 'Phone Number (Required)',
+                    labelText: 'Phone Number (11 digits required)',
+                    hintText: '01XXXXXXXXX',
                     prefixIcon: Icon(Icons.phone_outlined),
                   ),
-                  validator: (v) => v!.isEmpty ? 'Phone number is required' : null,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) {
+                      return 'Phone number is required';
+                    }
+                    final clean = v.replaceAll(RegExp(r'\D'), '');
+                    if (clean.length != 11) {
+                      return 'Phone number must be exactly 11 digits';
+                    }
+                    return null;
+                  },
                 ),
                 SizedBox(height: 16),
 

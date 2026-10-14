@@ -19,7 +19,7 @@ class CartItem {
 
   double totalPrice(String currency) {
     if (product == null) return 0;
-    return product!.getPrice(currency) * quantity;
+    return product!.getActivePrice(currency) * quantity;
   }
 
   factory CartItem.fromJson(Map<String, dynamic> json) {

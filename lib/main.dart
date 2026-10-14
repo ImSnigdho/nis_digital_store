@@ -16,6 +16,11 @@ import 'screens/splash_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Bounded image cache to prevent CanvasKit GPU texture memory exhaustion
+  PaintingBinding.instance.imageCache.maximumSize = 100;
+  PaintingBinding.instance.imageCache.maximumSizeBytes =
+      50 * 1024 * 1024; // 50 MB
+
   try {
     await Supabase.initialize(
       url: SupabaseConfig.supabaseUrl,

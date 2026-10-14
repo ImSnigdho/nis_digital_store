@@ -145,6 +145,7 @@ class ProductProvider extends ChangeNotifier {
     String? thumbnailUrl,
     String? fileUrl,
     String? brand,
+    int stock = 0,
   }) async {
     final product = await _productService.createProduct(
       name: name,
@@ -160,6 +161,7 @@ class ProductProvider extends ChangeNotifier {
       thumbnailUrl: thumbnailUrl,
       fileUrl: fileUrl,
       brand: brand,
+      stock: stock,
     );
     await loadProducts();
     return product;
@@ -180,6 +182,7 @@ class ProductProvider extends ChangeNotifier {
     String? thumbnailUrl,
     String? fileUrl,
     String? brand,
+    required int stock,
   }) async {
     await _productService.updateProductFull(
       id: id,
@@ -196,6 +199,7 @@ class ProductProvider extends ChangeNotifier {
       thumbnailUrl: thumbnailUrl,
       fileUrl: fileUrl,
       brand: brand,
+      stock: stock,
     );
     await loadProducts();
   }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../config/theme.dart';
 import '../../models/payment_method.dart';
 import '../../services/payment_method_service.dart';
+import '../../widgets/app_network_image.dart';
 
 class AdminPaymentMethodsScreen extends StatefulWidget {
   const AdminPaymentMethodsScreen({super.key});
@@ -146,19 +147,19 @@ class _AdminPaymentMethodsScreenState extends State<AdminPaymentMethodsScreen> {
                       child: Row(
                         children: [
                           // Icon
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: method.iconUrl != null &&
-                                    method.iconUrl!.isNotEmpty
-                                ? Image.network(
-                                    method.iconUrl!,
-                                    width: 48,
-                                    height: 48,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, e, s) => _iconPlaceholder(context),
-                                  )
-                                : _iconPlaceholder(context),
-                          ),
+                          method.iconUrl != null &&
+                                  method.iconUrl!.isNotEmpty
+                              ? AppNetworkImage(
+                                  imageUrl: method.iconUrl!,
+                                  width: 48,
+                                  height: 48,
+                                  memCacheWidth: 100,
+                                  memCacheHeight: 100,
+                                  fit: BoxFit.cover,
+                                  borderRadius: BorderRadius.circular(8),
+                                  errorWidget: _iconPlaceholder(context),
+                                )
+                              : _iconPlaceholder(context),
                           const SizedBox(width: 16),
                           // Info
                           Expanded(
@@ -380,12 +381,16 @@ class _PaymentMethodDialogState extends State<_PaymentMethodDialog> {
                           ? Image.memory(_iconBytes!,
                               width: 56, height: 56, fit: BoxFit.cover)
                           : (_iconUrl != null && _iconUrl!.isNotEmpty
-                              ? Image.network(_iconUrl!,
+                              ? AppNetworkImage(
+                                  imageUrl: _iconUrl!,
                                   width: 56,
                                   height: 56,
+                                  memCacheWidth: 120,
+                                  memCacheHeight: 120,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, e, s) =>
-                                      _placeholder(context))
+                                  borderRadius: BorderRadius.circular(8),
+                                  errorWidget: _placeholder(context),
+                                )
                               : _placeholder(context)),
                     ),
                     const SizedBox(width: 12),

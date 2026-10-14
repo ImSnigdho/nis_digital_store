@@ -5,9 +5,13 @@ import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../home/home_screen.dart';
 import 'complete_profile_screen.dart';
+import '../../widgets/welcome_logo.dart';
+import '../../widgets/ambient_side_gradient_background.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  final String? initialEmail;
+  final String? redirectMessage;
+  const RegisterScreen({super.key, this.initialEmail, this.redirectMessage});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -24,12 +28,57 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String _selectedCountry = 'BD';
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.initialEmail != null && widget.initialEmail!.isNotEmpty) {
+      _emailController.text = widget.initialEmail!;
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  String _cleanAuthError(String error) {
+    final lower = error.toLowerCase();
+    if (lower.contains('sign_in_failed') && (lower.contains('10') || lower.contains('developer_error'))) {
+      return 'Google Sign-In SHA-1 mismatch (Error 10). Please add the release SHA-1 to Google Cloud Console.';
+    }
+    if (lower.contains('email logins are disabled') ||
+        lower.contains('email signups are disabled') ||
+        lower.contains('email_provider_disabled')) {
+      return 'Email authentication is disabled in Supabase. Please enable Email Provider in Supabase Dashboard.';
+    }
+    if (lower.contains('already') &&
+        (lower.contains('registered') || lower.contains('exists') || lower.contains('user'))) {
+      return 'This email is already registered. Please Sign In!';
+    }
+    if (lower.contains('password') &&
+        (lower.contains('least') || lower.contains('short') || lower.contains('weak') || lower.contains('6'))) {
+      return 'Password must be at least 6 characters.';
+    }
+    if (lower.contains('invalid') && lower.contains('email')) {
+      return 'Please enter a valid email address.';
+    }
+    if (lower.contains('rate') && lower.contains('limit')) {
+      return 'Too many attempts. Please wait 1 minute before trying again.';
+    }
+    if (lower.contains('network') ||
+        lower.contains('socket') ||
+        lower.contains('failed host lookup')) {
+      return 'Network connection error. Please check your internet.';
+    }
+    final match = RegExp(r'message:\s*([^,)]+)').firstMatch(error);
+    if (match != null) {
+      final extracted = match.group(1)?.trim();
+      if (extracted != null && extracted.isNotEmpty) return extracted;
+    }
+    return error.replaceAll('Exception:', '').replaceAll('AuthApiException:', '').trim();
   }
 
   Future<void> _handleRegister() async {
@@ -44,7 +93,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
 
     if (success && mounted) {
-      if (!authProvider.isProfileComplete) {
+      if (authProvider.user == null) {
+        // Email confirmation is required by Supabase Auth!
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: const Color(0xFF1E293B),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Row(
+              children: [
+                Icon(Icons.mark_email_read_outlined,
+                    color: Color(0xFF6366F1)),
+                SizedBox(width: 8),
+                Text('Check Your Email',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
+              ],
+            ),
+            content: Text(
+              'A confirmation link has been sent to ${_emailController.text.trim()}.\n\nPlease check your email inbox to verify your account, then return to sign in.',
+              style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+            ),
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6366F1),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                ),
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.pop(context); // Return to login screen
+                },
+                child: const Text('Back to Sign In'),
+              ),
+            ],
+          ),
+        );
+      } else if (!authProvider.isProfileComplete) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const CompleteProfileScreen()),
           (route) => false,
@@ -56,10 +147,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
       }
     } else if (mounted && authProvider.error != null) {
+      final msg = _cleanAuthError(authProvider.error!);
+      final isAlreadyRegistered = msg.contains('already registered');
+
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.error!),
+          content: Text(msg),
           backgroundColor: AppColors.of(context).error,
+          action: isAlreadyRegistered
+              ? SnackBarAction(
+                  label: 'Sign In',
+                  textColor: Colors.white,
+                  onPressed: () => Navigator.pop(context),
+                )
+              : null,
         ),
       );
     }
@@ -69,10 +171,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final authProvider = context.read<AuthProvider>();
     final success = await authProvider.signInWithGoogle();
 
-    if (!success && mounted && authProvider.error != null) {
+    if (success && mounted) {
+      if (!authProvider.isProfileComplete) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const CompleteProfileScreen()),
+          (route) => false,
+        );
+      } else {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (route) => false,
+        );
+      }
+    } else if (!success && mounted && authProvider.error != null) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.error!),
+          content: Text(_cleanAuthError(authProvider.error!)),
           backgroundColor: AppColors.of(context).error,
         ),
       );
@@ -82,17 +197,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF1E293B),
-              Color(0xFF0F172A),
-            ],
-          ),
-        ),
+      backgroundColor: const Color(0xFF0F172A),
+      body: AmbientSideGradientBackground(
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -100,35 +206,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo
-                  Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [AppColors.of(context).primary, AppColors.of(context).accent],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.of(context).primary.withValues(alpha: 0.3),
-                          blurRadius: 20,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'NIS',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                    ),
-                  ),
+                  // Welcome Logo with circular icon1.png & breathing pulse
+                  const WelcomeLogo(size: 78),
                   const SizedBox(height: 24),
                   Text(
                     'Create Account',
@@ -139,7 +218,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     'Join NIS Digital Store',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  const SizedBox(height: 32),
+                  if (widget.redirectMessage != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6366F1).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF6366F1)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_outline,
+                              color: Color(0xFF818CF8), size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              widget.redirectMessage!,
+                              style: const TextStyle(
+                                  color: Color(0xFFE2E8F0),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 24),
 
                   // Glass register card
                   ClipRRect(
