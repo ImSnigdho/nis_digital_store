@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NIS Digital Store — Official Promo Video</title>
+  <!-- Swiss Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <!-- GSAP Animation Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: #030712;
+      color: #F9FAFB;
+      font-family: 'Inter', -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* 9:16 Vertical Video Frame (Swiss Grid Specification) */
+    .video-viewport {
+      position: relative;
+      width: min(100vw, calc(100vh * 9 / 16));
+      height: min(100vh, calc(100vw * 16 / 9));
+      aspect-ratio: 9 / 16;
+      background: radial-gradient(circle at 50% 20%, #0F172A 0%, #020617 80%);
+      overflow: hidden;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    /* Swiss Architectural Grid Lines */
+    .grid-lines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.15;
+    }
+
+    .grid-line-v {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: #FFFFFF;
+    }
+    .grid-line-v.left { left: 8%; }
+    .grid-line-v.right { right: 8%; }
+    .grid-line-v.mid-left { left: 33.33%; }
+    .grid-line-v.mid-right { left: 66.66%; }
+
+    .grid-line-h {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: #FFFFFF;
+    }
+    .grid-line-h.top { top: 7%; }
+    .grid-line-h.mid { top: 50%; }
+    .grid-line-h.bottom { bottom: 8%; }
+
+    /* Top Story / Video Progress Bar */
+    .progress-bar-container {
+      position: absolute;
+      top: 14px;
+      left: 8%;
+      right: 8%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 99px;
+      z-index: 50;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: #38BDF8;
+      box-shadow: 0 0 12px #38BDF8;
+    }
+
+    /* Top Metadata Header */
+    .top-header {
+      position: absolute;
+      top: 26px;
+      left: 8%;
+      right: 8%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #94A3B8;
+      z-index: 50;
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #F8FAFC;
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      background: #38BDF8;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #38BDF8;
+    }
+
+    .time-indicator {
+      font-family: 'Space Grotesk', monospace;
+      color: #64748B;
+    }
+
+    /* SCENE 1: Title & Hero Intro (0s - 3.5s) */
+    .scene-intro {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 8%;
+      z-index: 20;
+    }
+
+    .swiss-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #38BDF8;
+      margin-bottom: 16px;
+    }
+
+    .swiss-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(38px, 9vw, 52px);
+      font-weight: 700;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+      color: #FFFFFF;
+      margin-bottom: 20px;
+    }
+
+    .swiss-title span.highlight {
+      background: linear-gradient(135deg, #38BDF8 0%, #818CF8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .swiss-subtitle {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #94A3B8;
+      max-width: 85%;
+      border-left: 2px solid #38BDF8;
+      padding-left: 12px;
+    }
+
+    /* SCENE 2: App Screen Cards Showcase (3.5s - 11.5s) */
+    .scene-screens {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 30;
+      pointer-events: none;
+    }
+
+    .screen-stage {
+      position: relative;
+      width: 84%;
+      height: 70%;
+      perspective: 1200px;
+    }
+
+    /* Phone / Screen Mockup Container */
+    .phone-mockup {
+      position: absolute;
+      inset: 0;
+      background: #0B1120;
+      border-radius: 36px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(56, 189, 248, 0.2);
+      overflow: hidden;
+      transform: translateY(120%);
+      opacity: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mockup-notch {
+      width: 36%;
+      height: 18px;
+      background: #030712;
+      margin: 10px auto 14px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .mockup-lens {
+      width: 7px;
+      height: 7px;
+      background: #1E293B;
+      border-radius: 50%;
+    }
+
+    .mockup-content {
+      flex: 1;
+      padding: 0 18px 20px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Screen 1: Storefront Catalog */
+    .mockup-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .mockup-logo-badge {
+      font-size: 13px;
+      font-weight: 700;
+      color: #F8FAFC;
+      letter-spacing: -0.02em;
+    }
+
+    .mockup-search-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-size: 11px;
+      color: #64748B;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .mockup-categories {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .mockup-pill {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #94A3B8;
+    }
+
+    .mockup-pill.active {
+      background: #38BDF8;
+      color: #030712;
+    }
+
+    .mockup-product-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .product-card-mock {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 14px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .product-thumb {
+      width: 100%;
+      height: 64px;
+      background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .product-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: #F1F5F9;
+    }
+
+    .product-price {
+      font-size: 11px;
+      font-weight: 700;
+      color: #38BDF8;
+      margin-top: auto;
+    }
+
+    /* Screen 2: Checkout / Payment */
+    .checkout-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 12px;
+    }
+
+    .payment-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 8px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .payment-row.selected {
+      border-color: #38BDF8;
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .order-summary-box {
+      margin-top: auto;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #94A3B8;
+      margin-bottom: 6px;
+    }
+
+    .summary-line.total {
+      color: #F8FAFC;
+      font-weight: 700;
+      font-size: 13px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 6px;
+      margin-bottom: 0;
+    }
+
+    /* Screen 3: Instant Digital Delivery */
+    .delivery-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      align-self: center;
+      padding: 6px 14px;
+      border-radius: 99px;
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid #22C55E;
+      color: #4ADE80;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 16px 0;
+    }
+
+    .digital-key-box {
+      background: #030712;
+      border: 1px dashed #38BDF8;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .key-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #64748B;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .key-value {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      color: #38BDF8;
+    }
+
+    /* Screen Card Caption Overlay */
+    .screen-caption {
+      position: absolute;
+      bottom: -46px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #38BDF8;
+    }
+
+    /* SCENE 3: Outro & Call to Action (11.5s - 15s) */
+    .scene-outro {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8%;
+      text-align: center;
+      z-index: 40;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .app-icon-glow {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      margin-bottom: 24px;
+    }
+
+    .app-icon-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 24px;
+      object-fit: cover;
+      box-shadow: 0 10px 30px rgba(56, 189, 248, 0.4);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .app-icon-pulse {
+      position: absolute;
+      inset: -8px;
+      border-radius: 30px;
+      border: 1px solid #38BDF8;
+      opacity: 0.5;
+      animation: pulse 2s infinite ease-out;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      100% { transform: scale(1.25); opacity: 0; }
+    }
+
+    .outro-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(34px, 8vw, 44px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+      color: #FFFFFF;
+      line-height: 1.05;
+      margin-bottom: 10px;
+    }
+
+    .outro-tagline {
+      font-size: 13px;
+      color: #94A3B8;
+      margin-bottom: 30px;
+      letter-spacing: 0.04em;
+    }
+
+    .cta-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 280px;
+      padding: 16px 28px;
+      background: linear-gradient(135deg, #38BDF8 0%, #2563EB 100%);
+      color: #FFFFFF;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 99px;
+      box-shadow: 0 12px 30px -4px rgba(56, 189, 248, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .cta-meta {
+      margin-top: 16px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748B;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* Swiss Bottom Footer Grid Coordinates */
+    .bottom-coords {
+      position: absolute;
+      bottom: 22px;
+      left: 8%;
+      right: 8%;
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      font-family: 'Space Grotesk', monospace;
+      letter-spacing: 0.14em;
+      color: #475569;
+      text-transform: uppercase;
+      z-index: 50;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 9:16 Vertical Video Frame -->
+  <div class="video-viewport" id="videoViewport">
+
+    <!-- Precision Swiss Grid Overlay Lines -->
+    <div class="grid-lines">
+      <div class="grid-line-v left"></div>
+      <div class="grid-line-v mid-left"></div>
+      <div class="grid-line-v mid-right"></div>
+      <div class="grid-line-v right"></div>
+      <div class="grid-line-h top"></div>
+      <div class="grid-line-h mid"></div>
+      <div class="grid-line-h bottom"></div>
+    </div>
+
+    <!-- 15-Second Video Progress Indicator -->
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+
+    <!-- Header Navigation Bar -->
+    <div class="top-header">
+      <div class="brand-mark">
+        <div class="brand-dot"></div>
+        <span>NIS Digital Store</span>
+      </div>
+      <div class="time-indicator" id="timeCode">00:00 / 00:15</div>
+    </div>
+
+    <!-- SCENE 1: Bold Swiss Typography Title (0s - 3.5s) -->
+    <div class="scene-intro" id="sceneIntro">
+      <div class="swiss-tag" id="introTag">
+        <span>01 // STORE RELEASE</span>
+      </div>
+      <h1 class="swiss-title" id="introTitle">
+        INSTANT <br/>
+        <span class="highlight">GAMING</span> <br/>
+        KEYS & TOP-UPS
+      </h1>
+      <p class="swiss-subtitle" id="introSubtitle">
+        The official digital storefront for Steam, Discord Nitro, Minecraft, & in-game currency.
+      </p>
+    </div>
+
+    <!-- SCENE 2: Three Screenshots Sliding Up Sequentially (3.5s - 11.5s) -->
+    <div class="scene-screens">
+      <div class="screen-stage">
+        
+        <!-- Screen 1: Storefront Catalog -->
+        <div class="phone-mockup" id="screen1">
+          <div class="mockup-notch"><div class="mockup-lens"></div></div>
+          <div class="mockup-content">
+            <div class="mockup-header-bar">
+              <span class="mockup-logo-badge">🎮 NIS Store</span>
+              <span style="font-size:11px; color:#38BDF8; font-weight:700;">৳ BDT / $ USD</span>
+            </div>
+            <div class="mockup-search-box">
+              <span>🔍</span> Search Minecraft, Steam, Nitro...
+            </div>
+            <div class="mockup-categories">
+              <span class="mockup-pill active">🔥 All</span>
+              <span class="mockup-pill">🎮 Games</span>
+              <span class="mockup-pill">⚡ Nitro</span>
+              <span class="mockup-pill">🎟️ Cards</span>
+            </div>
+            <div class="mockup-product-grid">
+              <div class="product-card-mock">
+                <div class="product-thumb">⛏️</div>
+                <div class="product-name">Minecraft 1720 Coins</div>
+                <div class="product-price">৳ 1,450 BDT</div>
+              </div>
+              <div class="product-card-mock">
+                <div class="product-thumb">🚀</div>
+                <div class="product-name">Discord Nitro 1 Mo</div>
+                <div class="product-price">৳ 1,190 BDT</div>
+              </div>
+              <div class="product-card-mock">
+                <div class="product-thumb">🎮</div>
+                <div class="product-name">Steam Wallet $10</div>
+                <div class="product-price">$ 10.00 USD</div>
+              </div>
+              <div class="product-card-mock">
+                <div class="product-thumb">💎</div>
+                <div class="product-name">Free Fire 530 Diamonds</div>
+                <div class="product-price">৳ 480 BDT</div>
+              </div>
+            </div>
+          </div>
+          <div class="screen-caption">01 // BROWSE & FILTER CATALOG</div>
+        </div>
+
+        <!-- Screen 2: Instant Checkout & Payment -->
+        <div class="phone-mockup" id="screen2">
+          <div class="mockup-notch"><div class="mockup-lens"></div></div>
+          <div class="mockup-content">
+            <div class="checkout-title">Express Checkout</div>
+            <div style="font-size:11px; color:#94A3B8; margin-bottom:12px;">Select Payment Gateway</div>
+            <div class="payment-row selected">
+              <span>🌸 bKash Personal</span>
+              <span style="color:#38BDF8;">✓ Selected</span>
+            </div>
+            <div class="payment-row">
+              <span>🟠 Nagad</span>
+              <span style="color:#64748B;">0% Fee</span>
+            </div>
+            <div class="payment-row">
+              <span>🟣 Rocket</span>
+              <span style="color:#64748B;">Instant</span>
+            </div>
+            <div class="order-summary-box">
+              <div class="summary-line"><span>Subtotal:</span><span>৳ 1,450 BDT</span></div>
+              <div class="summary-line"><span>Promo Code (VIP10):</span><span style="color:#4ADE80;">- ৳ 145 BDT</span></div>
+              <div class="summary-line total"><span>Total Payable:</span><span style="color:#38BDF8;">৳ 1,305 BDT</span></div>
+            </div>
+          </div>
+          <div class="screen-caption">02 // INSTANT CHECKOUT & LOCAL PAY</div>
+        </div>
+
+        <!-- Screen 3: Digital Key Delivered -->
+        <div class="phone-mockup" id="screen3">
+          <div class="mockup-notch"><div class="mockup-lens"></div></div>
+          <div class="mockup-content" style="align-items: center; justify-content: center;">
+            <div style="font-size:38px; margin-bottom: 4px;">🎉</div>
+            <div style="font-size:15px; font-weight:700; color:#FFFFFF;">Order Confirmed!</div>
+            <div class="delivery-badge">✓ Digital Key Delivered</div>
+            <div class="digital-key-box" style="width: 100%;">
+              <div class="key-label">Your License Key</div>
+              <div class="key-value">NIS-7890-MC17-B9X4</div>
+            </div>
+            <div style="font-size:11px; color:#94A3B8; text-align: center; line-height: 1.4;">
+              A copy has also been stored in your Order History.
+            </div>
+          </div>
+          <div class="screen-caption">03 // INSTANT AUTOMATED DELIVERY</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SCENE 3: Outro Call to Action (11.5s - 15s) -->
+    <div class="scene-outro" id="sceneOutro">
+      <div class="app-icon-glow">
+        <div class="app-icon-pulse"></div>
+        <img class="app-icon-img" src="../icons/icon.png" alt="NIS Logo" onerror="this.src='https://raw.githubusercontent.com/ImSnigdho/nis_digital_store/main/icons/icon.png'">
+      </div>
+      <h2 class="outro-title">NIS DIGITAL <br/> STORE</h2>
+      <p class="outro-tagline">Gaming Top-Ups • Subscriptions • Gift Cards</p>
+      
+      <div class="cta-button" id="ctaButton">
+        <span>DOWNLOAD NOW</span>
+        <span>➔</span>
+      </div>
+      
+      <div class="cta-meta">v1.0.0 • Android Release • Free Download</div>
+    </div>
+
+    <!-- Bottom Swiss Coordinates -->
+    <div class="bottom-coords">
+      <span>GRID: 9:16 VERTICAL</span>
+      <span>NIS.STORE // 2026</span>
+    </div>
+
+  </div>
+
+  <!-- GSAP Animation Engine Script -->
+  <script>
+    // 15-Second Master Timeline
+    const tl = gsap.timeline({
+      repeat: -1, // Loops indefinitely for demo / preview
+      onUpdate: function() {
+        const progress = tl.progress();
+        document.getElementById('progressFill').style.width = (progress * 100) + '%';
+        const currentTime = (progress * 15).toFixed(1);
+        document.getElementById('timeCode').innerText = 
+          (currentTime < 10 ? '0' : '') + Math.floor(currentTime) + ':' + 
+          Math.floor((currentTime % 1) * 60).toString().padStart(2, '0') + ' / 00:15';
+      }
+    });
+
+    // --- TIMELINE SEQUENCING (Exact 15.0s Total Duration) ---
+
+    // [0.0s - 3.5s] SCENE 1: Intro Title In & Out
+    tl.fromTo("#introTag", 
+      { opacity: 0, y: -20 }, 
+      { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 
+      0.3
+    )
+    .fromTo("#introTitle", 
+      { opacity: 0, y: 35, scale: 0.95 }, 
+      { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: "power4.out" }, 
+      0.5
+    )
+    .fromTo("#introSubtitle", 
+      { opacity: 0, x: -30 }, 
+      { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 
+      0.8
+    )
+    .to("#sceneIntro", 
+      { opacity: 0, y: -40, scale: 0.95, duration: 0.6, ease: "power2.in" }, 
+      3.2
+    );
+
+    // [3.2s - 5.8s] SCREEN 1: Storefront Catalog
+    tl.fromTo("#screen1", 
+      { opacity: 0, y: "110%", scale: 0.9 }, 
+      { opacity: 1, y: "0%", scale: 1, duration: 0.75, ease: "power4.out" }, 
+      3.2
+    )
+    .to("#screen1", 
+      { opacity: 0, y: "-110%", scale: 0.92, duration: 0.45, ease: "power3.in" }, 
+      5.65
+    );
+
+    // [6.1s - 8.7s] SCREEN 2: Checkout & Local Payment
+    tl.fromTo("#screen2", 
+      { opacity: 0, y: "110%", scale: 0.9 }, 
+      { opacity: 1, y: "0%", scale: 1, duration: 0.75, ease: "power4.out" }, 
+      6.1
+    )
+    .to("#screen2", 
+      { opacity: 0, y: "-110%", scale: 0.92, duration: 0.45, ease: "power3.in" }, 
+      8.55
+    );
+
+    // [9.0s - 11.6s] SCREEN 3: Instant Digital Key Delivery
+    tl.fromTo("#screen3", 
+      { opacity: 0, y: "110%", scale: 0.9 }, 
+      { opacity: 1, y: "0%", scale: 1, duration: 0.75, ease: "power4.out" }, 
+      9.0
+    )
+    .to("#screen3", 
+      { opacity: 0, y: "-110%", scale: 0.92, duration: 0.45, ease: "power3.in" }, 
+      11.45
+    );
+
+    // [11.8s - 15.0s] SCENE 3: Outro & Download Call To Action
+    tl.fromTo("#sceneOutro", 
+      { opacity: 0, scale: 0.88, y: 30 }, 
+      { opacity: 1, scale: 1, y: 0, duration: 0.65, ease: "back.out(1.4)" }, 
+      11.8
+    )
+    .fromTo("#ctaButton", 
+      { scale: 0.92, boxShadow: "0 0 0 rgba(56, 189, 248, 0)" }, 
+      { scale: 1.04, boxShadow: "0 12px 36px rgba(56, 189, 248, 0.65)", duration: 0.65, yoyo: true, repeat: 1, ease: "sine.inOut" }, 
+      12.6
+    )
+    .to("#sceneOutro", 
+      { opacity: 0, scale: 1.05, duration: 0.45, ease: "power2.in" }, 
+      14.55
+    );
+  </script>
+</body>
+</html>
