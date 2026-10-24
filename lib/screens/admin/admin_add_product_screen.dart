@@ -208,17 +208,24 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
   @override
   Widget build(BuildContext context) {
     final categories = context.watch<ProductProvider>().categories;
+    final isMobile = MediaQuery.of(context).size.width < 700;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(isEditMode ? 'Edit Product' : 'Add New Product'),
         actions: [
-          TextButton.icon(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back),
-            label: const Text('BACK TO LIST'),
-          ),
+          isMobile
+              ? IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.arrow_back),
+                  tooltip: 'BACK TO LIST',
+                )
+              : TextButton.icon(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.arrow_back),
+                  label: const Text('BACK TO LIST'),
+                ),
         ],
       ),
       body: Form(
@@ -258,63 +265,97 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
                   const SizedBox(height: 20),
 
                   // Row 1: Title + Category
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: _buildTextField('Product Title *', _titleCtrl, validator: (v) => v == null || v.isEmpty ? 'Required' : null),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        flex: 2,
-                        child: _buildDropdownField(
-                          'Category *',
-                          categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
-                          _selectedCategoryId,
-                          (val) => setState(() => _selectedCategoryId = val),
+                  if (isMobile) ...[
+                    _buildTextField('Product Title *', _titleCtrl, validator: (v) => v == null || v.isEmpty ? 'Required' : null),
+                    const SizedBox(height: 16),
+                    _buildDropdownField(
+                      'Category *',
+                      categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name, overflow: TextOverflow.ellipsis))).toList(),
+                      _selectedCategoryId,
+                      (val) => setState(() => _selectedCategoryId = val),
+                    ),
+                  ] else ...[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: _buildTextField('Product Title *', _titleCtrl, validator: (v) => v == null || v.isEmpty ? 'Required' : null),
                         ),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          flex: 2,
+                          child: _buildDropdownField(
+                            'Category *',
+                            categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name, overflow: TextOverflow.ellipsis))).toList(),
+                            _selectedCategoryId,
+                            (val) => setState(() => _selectedCategoryId = val),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 16),
 
                   // Row 2: Short Desc + Status
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: _buildTextField('Short Description *', _shortDescCtrl, maxLines: 3, validator: (v) => v == null || v.isEmpty ? 'Required' : null),
+                  if (isMobile) ...[
+                    _buildTextField('Short Description *', _shortDescCtrl, maxLines: 3, validator: (v) => v == null || v.isEmpty ? 'Required' : null),
+                    const SizedBox(height: 16),
+                    _buildDropdownField(
+                      'Status',
+                      ['draft', 'active', 'inactive'].map((s) => DropdownMenuItem(value: s, child: Text(s[0].toUpperCase() + s.substring(1), overflow: TextOverflow.ellipsis))).toList(),
+                      _status,
+                      (val) => setState(() => _status = val ?? 'active'),
+                    ),
+                    const SizedBox(height: 8),
+                    Material(
+                      color: Colors.transparent,
+                      child: CheckboxListTile(
+                        value: _isFeatured,
+                        onChanged: (v) => setState(() => _isFeatured = v ?? false),
+                        title: Text('Featured Product', style: TextStyle(color: AppColors.of(context).textColor, fontSize: 14)),
+                        controlAffinity: ListTileControlAffinity.leading,
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          children: [
-                            _buildDropdownField(
-                              'Status',
-                              ['draft', 'active', 'inactive'].map((s) => DropdownMenuItem(value: s, child: Text(s[0].toUpperCase() + s.substring(1)))).toList(),
-                              _status,
-                              (val) => setState(() => _status = val ?? 'active'),
-                            ),
-                            const SizedBox(height: 12),
-                            Material(
-                              color: Colors.transparent,
-                              child: CheckboxListTile(
-                                value: _isFeatured,
-                                onChanged: (v) => setState(() => _isFeatured = v ?? false),
-                                title: Text('Featured Product', style: TextStyle(color: AppColors.of(context).textColor, fontSize: 14)),
-                                controlAffinity: ListTileControlAffinity.leading,
-                                dense: true,
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                            ),
-                          ],
+                    ),
+                  ] else ...[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: _buildTextField('Short Description *', _shortDescCtrl, maxLines: 3, validator: (v) => v == null || v.isEmpty ? 'Required' : null),
                         ),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            children: [
+                              _buildDropdownField(
+                                'Status',
+                                ['draft', 'active', 'inactive'].map((s) => DropdownMenuItem(value: s, child: Text(s[0].toUpperCase() + s.substring(1), overflow: TextOverflow.ellipsis))).toList(),
+                                _status,
+                                (val) => setState(() => _status = val ?? 'active'),
+                              ),
+                              const SizedBox(height: 12),
+                              Material(
+                                color: Colors.transparent,
+                                child: CheckboxListTile(
+                                  value: _isFeatured,
+                                  onChanged: (v) => setState(() => _isFeatured = v ?? false),
+                                  title: Text('Featured Product', style: TextStyle(color: AppColors.of(context).textColor, fontSize: 14)),
+                                  controlAffinity: ListTileControlAffinity.leading,
+                                  dense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 16),
 
                   // Full Description
@@ -322,17 +363,35 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
                   const SizedBox(height: 16),
 
                   // Row 3: Price + Sale Price + Brand + Stock
-                  Row(
-                    children: [
-                      Expanded(child: _buildTextField('Price (৳) *', _priceCtrl, keyboardType: TextInputType.number, validator: (v) => v == null || v.isEmpty ? 'Required' : null)),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildTextField('Sale Price (৳)', _salePriceCtrl, keyboardType: TextInputType.number)),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildTextField('Brand', _brandCtrl)),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildTextField('Stock *', _stockCtrl, keyboardType: TextInputType.number, validator: (v) => v == null || v.isEmpty ? 'Required' : null)),
-                    ],
-                  ),
+                  if (isMobile) ...[
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField('Price (৳) *', _priceCtrl, keyboardType: TextInputType.number, validator: (v) => v == null || v.isEmpty ? 'Required' : null)),
+                        const SizedBox(width: 12),
+                        Expanded(child: _buildTextField('Sale Price (৳)', _salePriceCtrl, keyboardType: TextInputType.number)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField('Brand', _brandCtrl)),
+                        const SizedBox(width: 12),
+                        Expanded(child: _buildTextField('Stock *', _stockCtrl, keyboardType: TextInputType.number, validator: (v) => v == null || v.isEmpty ? 'Required' : null)),
+                      ],
+                    ),
+                  ] else ...[
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField('Price (৳) *', _priceCtrl, keyboardType: TextInputType.number, validator: (v) => v == null || v.isEmpty ? 'Required' : null)),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildTextField('Sale Price (৳)', _salePriceCtrl, keyboardType: TextInputType.number)),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildTextField('Brand', _brandCtrl)),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildTextField('Stock *', _stockCtrl, keyboardType: TextInputType.number, validator: (v) => v == null || v.isEmpty ? 'Required' : null)),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -399,29 +458,45 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  Row(
-                    children: [
-                      // Featured Image
-                      Expanded(
-                        child: _buildFilePickerField(
-                          label: 'Featured Image',
-                          fileName: _thumbnailFileName ?? (_thumbnailUrl != null ? 'Current image' : null),
-                          onPick: _pickThumbnail,
-                          hasFile: _thumbnailBytes != null || _thumbnailUrl != null,
+                  if (isMobile) ...[
+                    _buildFilePickerField(
+                      label: 'Featured Image',
+                      fileName: _thumbnailFileName ?? (_thumbnailUrl != null ? 'Current image' : null),
+                      onPick: _pickThumbnail,
+                      hasFile: _thumbnailBytes != null || _thumbnailUrl != null,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildFilePickerField(
+                      label: 'Product File',
+                      fileName: _productFileName ?? (_fileUrl != null ? 'Current file' : null),
+                      onPick: _pickProductFile,
+                      hasFile: _productFileBytes != null || _fileUrl != null,
+                    ),
+                  ] else ...[
+                    Row(
+                      children: [
+                        // Featured Image
+                        Expanded(
+                          child: _buildFilePickerField(
+                            label: 'Featured Image',
+                            fileName: _thumbnailFileName ?? (_thumbnailUrl != null ? 'Current image' : null),
+                            onPick: _pickThumbnail,
+                            hasFile: _thumbnailBytes != null || _thumbnailUrl != null,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      // Product File
-                      Expanded(
-                        child: _buildFilePickerField(
-                          label: 'Product File',
-                          fileName: _productFileName ?? (_fileUrl != null ? 'Current file' : null),
-                          onPick: _pickProductFile,
-                          hasFile: _productFileBytes != null || _fileUrl != null,
+                        const SizedBox(width: 16),
+                        // Product File
+                        Expanded(
+                          child: _buildFilePickerField(
+                            label: 'Product File',
+                            fileName: _productFileName ?? (_fileUrl != null ? 'Current file' : null),
+                            onPick: _pickProductFile,
+                            hasFile: _productFileBytes != null || _fileUrl != null,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
 
                   // Preview thumbnail
                   if (_thumbnailBytes != null) ...[
@@ -524,6 +599,7 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
         Text(label, style: TextStyle(color: AppColors.of(context).textSecondary, fontSize: 13)),
         const SizedBox(height: 6),
         DropdownButtonFormField<T>(
+          isExpanded: true,
           initialValue: value,
           onChanged: onChanged,
           items: items,

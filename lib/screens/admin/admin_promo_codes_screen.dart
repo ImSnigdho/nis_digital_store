@@ -628,6 +628,7 @@ class _PromoCodeDialogState extends State<_PromoCodeDialog> {
                         fontSize: 13)),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
+                  isExpanded: true,
                   initialValue: _discountType,
                   onChanged: (v) => setState(() => _discountType = v!),
                   style: TextStyle(color: AppColors.of(context).textColor),
@@ -666,6 +667,7 @@ class _PromoCodeDialogState extends State<_PromoCodeDialog> {
                                     fontSize: 13)),
                             const SizedBox(height: 6),
                             DropdownButtonFormField<String>(
+                              isExpanded: true,
                               initialValue: _fixedCurrency,
                               onChanged: (v) =>
                                   setState(() => _fixedCurrency = v!),

@@ -451,6 +451,7 @@ class AdminCategoriesScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
+                    isExpanded: true,
                     initialValue: status,
                     onChanged: (val) => setState(() => status = val!),
                     items: ['active', 'inactive']
