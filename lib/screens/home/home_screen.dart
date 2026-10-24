@@ -60,8 +60,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final screens = [
       _buildHomeContent(),
       const ProductCatalogScreen(),
-      const WishlistScreen(),
-      const CartScreen(),
+      WishlistScreen(
+        onBrowseProducts: () => setState(() => _currentIndex = 1),
+      ),
+      CartScreen(
+        onBrowseProducts: () => setState(() => _currentIndex = 1),
+      ),
       const ProfileScreen(),
     ];
 

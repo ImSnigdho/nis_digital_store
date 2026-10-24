@@ -10,8 +10,12 @@ import '../../utils/currency_formatter.dart';
 import '../checkout/checkout_screen.dart';
 import '../../utils/smooth_page_route.dart';
 
+import '../product/product_catalog_screen.dart';
+
 class CartScreen extends StatelessWidget {
-  const CartScreen({super.key});
+  final VoidCallback? onBrowseProducts;
+
+  const CartScreen({super.key, this.onBrowseProducts});
 
   @override
   Widget build(BuildContext context) {
@@ -40,29 +44,82 @@ class CartScreen extends StatelessWidget {
 
           if (cart.items.isEmpty) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.shopping_cart_outlined,
-                      color: AppColors.of(context).textSecondary.withValues(alpha: 0.5), size: 80),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Your cart is empty',
-                    style: TextStyle(
-                      color: AppColors.of(context).textColor,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        color: AppColors.of(context).primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.shopping_cart_outlined,
+                        color: AppColors.of(context).primary,
+                        size: 44,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Add some products to get started',
-                    style: TextStyle(
-                      color: AppColors.of(context).textSecondary,
-                      fontSize: 14,
+                    const SizedBox(height: 24),
+                    Text(
+                      "Looks like you haven't picked up any keys yet.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.of(context).textColor,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    Text(
+                      'Explore top digital games, gift cards, and game items ready for instant delivery.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.of(context).textSecondary,
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        if (onBrowseProducts != null) {
+                          onBrowseProducts!();
+                        } else {
+                          Navigator.of(context).push(
+                            SmoothPageRoute(
+                              page: const ProductCatalogScreen(),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.explore_outlined, size: 20),
+                      label: const Text(
+                        'Browse Products',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.of(context).primary,
+                        foregroundColor: Colors.white,
+                        elevation: 3,
+                        shadowColor:
+                            AppColors.of(context).primary.withValues(alpha: 0.35),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 28, vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }

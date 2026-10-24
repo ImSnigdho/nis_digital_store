@@ -8,8 +8,12 @@ import '../../widgets/product_card.dart';
 import '../product/product_detail_screen.dart';
 import '../../utils/smooth_page_route.dart';
 
+import '../product/product_catalog_screen.dart';
+
 class WishlistScreen extends StatelessWidget {
-  const WishlistScreen({super.key});
+  final VoidCallback? onBrowseProducts;
+
+  const WishlistScreen({super.key, this.onBrowseProducts});
 
   @override
   Widget build(BuildContext context) {
@@ -38,29 +42,82 @@ class WishlistScreen extends StatelessWidget {
 
           if (wishlist.items.isEmpty) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.favorite_border,
-                      color: AppColors.of(context).textSecondary.withValues(alpha: 0.5), size: 80),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Your wishlist is empty',
-                    style: TextStyle(
-                      color: AppColors.of(context).textColor,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        color: AppColors.of(context).primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.favorite_border_rounded,
+                        color: AppColors.of(context).primary,
+                        size: 44,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Save items you love for later',
-                    style: TextStyle(
-                      color: AppColors.of(context).textSecondary,
-                      fontSize: 14,
+                    const SizedBox(height: 24),
+                    Text(
+                      'Your wishlist is empty',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.of(context).textColor,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    Text(
+                      'Save digital keys and game items you love for easy access anytime.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.of(context).textSecondary,
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        if (onBrowseProducts != null) {
+                          onBrowseProducts!();
+                        } else {
+                          Navigator.of(context).push(
+                            SmoothPageRoute(
+                              page: const ProductCatalogScreen(),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.explore_outlined, size: 20),
+                      label: const Text(
+                        'Browse Products',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.of(context).primary,
+                        foregroundColor: Colors.white,
+                        elevation: 3,
+                        shadowColor:
+                            AppColors.of(context).primary.withValues(alpha: 0.35),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 28, vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
