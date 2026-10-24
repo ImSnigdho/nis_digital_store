@@ -72,6 +72,7 @@ class OrderProvider extends ChangeNotifier {
     String? promoCodeId,
     double discountAmount = 0,
     String? paymentMethodName,
+    String? reference,
   }) async {
     _isLoading = true;
     _error = null;
@@ -87,6 +88,7 @@ class OrderProvider extends ChangeNotifier {
         promoCodeId: promoCodeId,
         discountAmount: discountAmount,
         paymentMethodName: paymentMethodName,
+        reference: reference,
       );
       await loadOrders();
       _isLoading = false;

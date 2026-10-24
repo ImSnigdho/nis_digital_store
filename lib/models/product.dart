@@ -22,6 +22,14 @@ class Product {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
+  /// When true, the customer MUST provide a delivery reference
+  /// (e.g. in-game name) at checkout. When false it is optional.
+  final bool referenceRequired;
+
+  /// Admin-written hint shown to the customer inside the reference field
+  /// (format / what to enter).
+  final String? referenceHint;
+
   Product({
     required this.id,
     required this.name,
@@ -45,6 +53,8 @@ class Product {
     this.tags = const [],
     this.createdAt,
     this.updatedAt,
+    this.referenceRequired = false,
+    this.referenceHint,
   });
 
   double getPrice(String currency) {
@@ -114,6 +124,8 @@ class Product {
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'] as String)
           : null,
+      referenceRequired: json['reference_required'] as bool? ?? false,
+      referenceHint: json['reference_hint'] as String?,
     );
   }
 
@@ -138,6 +150,8 @@ class Product {
       'rating': rating,
       'review_count': reviewCount,
       'tags': tags,
+      'reference_required': referenceRequired,
+      'reference_hint': referenceHint,
     };
   }
 }

@@ -78,8 +78,12 @@ class ProductService {
     String? fileUrl,
     String? brand,
     int stock = 0,
+    bool referenceRequired = false,
+    String? referenceHint,
   }) async {
     final data = {
+      'reference_required': referenceRequired,
+      'reference_hint': referenceHint,
       'name': name,
       'short_description': shortDescription,
       'description': description,
@@ -123,8 +127,12 @@ class ProductService {
     String? fileUrl,
     String? brand,
     required int stock,
+    bool referenceRequired = false,
+    String? referenceHint,
   }) async {
     final data = {
+      'reference_required': referenceRequired,
+      'reference_hint': referenceHint,
       'name': name,
       'short_description': shortDescription,
       'description': description,

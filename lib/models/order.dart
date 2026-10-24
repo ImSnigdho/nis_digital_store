@@ -17,6 +17,7 @@ class Order {
   final String? _rawDeliveryEmail;
   final String? _rawPhone;
   final String? _rawDiscordUsername;
+  final String? _rawReference;
 
   Order({
     required this.id,
@@ -35,10 +36,12 @@ class Order {
     String? deliveryEmail,
     String? phone,
     String? discordUsername,
+    String? reference,
   })  : _rawCustomerName = customerName,
         _rawDeliveryEmail = deliveryEmail,
         _rawPhone = phone,
-        _rawDiscordUsername = discordUsername;
+        _rawDiscordUsername = discordUsername,
+        _rawReference = reference;
 
   double getTotal(String currency) {
     return currency == 'BDT' ? totalBdt : totalUsd;
@@ -59,6 +62,13 @@ class Order {
       shippingAddress?['discord'] as String? ??
       shippingAddress?['discord_username'] as String?;
 
+  /// Customer-supplied delivery reference (e.g. in-game name / UID).
+  String? get reference {
+    final value = _rawReference ?? shippingAddress?['reference'] as String?;
+    if (value == null || value.trim().isEmpty) return null;
+    return value.trim();
+  }
+
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
       id: json['id'] as String,
@@ -74,6 +84,7 @@ class Order {
       deliveryEmail: json['delivery_email'] as String?,
       phone: json['phone'] as String?,
       discordUsername: json['discord_username'] as String?,
+      reference: json['reference'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,

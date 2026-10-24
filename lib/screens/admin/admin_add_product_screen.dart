@@ -25,10 +25,27 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
   late TextEditingController _salePriceCtrl;
   late TextEditingController _brandCtrl;
   late TextEditingController _stockCtrl;
+  late TextEditingController _referenceHintCtrl;
 
   String? _selectedCategoryId;
   String _status = 'active';
   bool _isFeatured = false;
+  bool _referenceRequired = false;
+
+  static const List<_HintTemplate> _hintTemplates = [
+    _HintTemplate(
+      'In-Game Name',
+      'Enter your exact in-game name (case-sensitive). Example: CubeCraft_99. Your gift will be sent to this account.',
+    ),
+    _HintTemplate(
+      'Player ID / UID',
+      'Enter your numeric Player ID / UID (found in Profile > Settings). Example: 5839201746',
+    ),
+    _HintTemplate(
+      'Username + Server',
+      'Enter your username and server. Example: Steve123 | Asia Server',
+    ),
+  ];
 
   String? _thumbnailUrl;
   String? _fileUrl;
@@ -56,6 +73,8 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
     _selectedCategoryId = p?.categoryId;
     _status = p?.status ?? 'active';
     _isFeatured = p?.isFeatured ?? false;
+    _referenceRequired = p?.referenceRequired ?? false;
+    _referenceHintCtrl = TextEditingController(text: p?.referenceHint ?? '');
     _thumbnailUrl = p?.thumbnailUrl;
     _fileUrl = p?.fileUrl;
   }
@@ -69,6 +88,7 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
     _salePriceCtrl.dispose();
     _brandCtrl.dispose();
     _stockCtrl.dispose();
+    _referenceHintCtrl.dispose();
     super.dispose();
   }
 
@@ -141,6 +161,8 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
           fileUrl: prodFileUrl,
           brand: _brandCtrl.text.trim().isNotEmpty ? _brandCtrl.text.trim() : null,
           stock: int.tryParse(_stockCtrl.text) ?? 0,
+          referenceRequired: _referenceRequired,
+          referenceHint: _referenceHintCtrl.text.trim().isNotEmpty ? _referenceHintCtrl.text.trim() : null,
         );
       } else {
         await provider.createProduct(
@@ -158,6 +180,8 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
           fileUrl: prodFileUrl,
           brand: _brandCtrl.text.trim().isNotEmpty ? _brandCtrl.text.trim() : null,
           stock: int.tryParse(_stockCtrl.text) ?? 0,
+          referenceRequired: _referenceRequired,
+          referenceHint: _referenceHintCtrl.text.trim().isNotEmpty ? _referenceHintCtrl.text.trim() : null,
         );
       }
 
@@ -308,6 +332,54 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
                       const SizedBox(width: 16),
                       Expanded(child: _buildTextField('Stock *', _stockCtrl, keyboardType: TextInputType.number, validator: (v) => v == null || v.isEmpty ? 'Required' : null)),
                     ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Delivery reference section
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: GlassDecoration(context: context),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Delivery Reference',
+                    style: TextStyle(color: AppColors.of(context).primary, fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Info the buyer gives at checkout (e.g. in-game name) so you can deliver.',
+                    style: TextStyle(color: AppColors.of(context).textSecondary, fontSize: 12),
+                  ),
+                  const SizedBox(height: 8),
+                  Material(
+                    color: Colors.transparent,
+                    child: SwitchListTile(
+                      value: _referenceRequired,
+                      onChanged: (v) => setState(() => _referenceRequired = v),
+                      title: Text('Reference is mandatory', style: TextStyle(color: AppColors.of(context).textColor, fontSize: 14)),
+                      subtitle: Text(
+                        _referenceRequired ? 'Buyer must fill it to checkout' : 'Optional - buyer may skip it',
+                        style: TextStyle(color: AppColors.of(context).textSecondary, fontSize: 12),
+                      ),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildTextField('Hint message (shown to buyer when they tap the Reference field)', _referenceHintCtrl, maxLines: 3),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _hintTemplates
+                        .map((t) => ActionChip(
+                              label: Text(t.label, style: const TextStyle(fontSize: 12)),
+                              onPressed: () => setState(() => _referenceHintCtrl.text = t.message),
+                            ))
+                        .toList(),
                   ),
                 ],
               ),
@@ -511,4 +583,10 @@ class _AdminAddProductScreenState extends State<AdminAddProductScreen> {
       ],
     );
   }
+}
+
+class _HintTemplate {
+  final String label;
+  final String message;
+  const _HintTemplate(this.label, this.message);
 }

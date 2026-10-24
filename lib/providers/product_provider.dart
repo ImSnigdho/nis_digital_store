@@ -146,8 +146,12 @@ class ProductProvider extends ChangeNotifier {
     String? fileUrl,
     String? brand,
     int stock = 0,
+    bool referenceRequired = false,
+    String? referenceHint,
   }) async {
     final product = await _productService.createProduct(
+      referenceRequired: referenceRequired,
+      referenceHint: referenceHint,
       name: name,
       shortDescription: shortDescription,
       description: description,
@@ -183,8 +187,12 @@ class ProductProvider extends ChangeNotifier {
     String? fileUrl,
     String? brand,
     required int stock,
+    bool referenceRequired = false,
+    String? referenceHint,
   }) async {
     await _productService.updateProductFull(
+      referenceRequired: referenceRequired,
+      referenceHint: referenceHint,
       id: id,
       name: name,
       shortDescription: shortDescription,

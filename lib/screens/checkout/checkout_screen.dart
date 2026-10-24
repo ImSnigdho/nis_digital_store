@@ -24,6 +24,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _paymentRefController = TextEditingController();
+  final _referenceController = TextEditingController();
+  final _referenceFocus = FocusNode();
   final _promoCodeController = TextEditingController();
 
   List<PaymentMethod> _paymentMethods = [];
@@ -39,6 +41,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final auth = context.read<AuthProvider>();
     _nameController.text = auth.profile?.fullName ?? '';
     _phoneController.text = auth.profile?.phone ?? '';
+
+    _referenceFocus.addListener(() {
+      if (mounted) setState(() {});
+    });
 
     _loadPaymentMethods();
   }
@@ -89,6 +95,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _phoneController.dispose();
     _emailController.dispose();
     _paymentRefController.dispose();
+    _referenceController.dispose();
+    _referenceFocus.dispose();
     _promoCodeController.dispose();
     super.dispose();
   }
@@ -109,6 +117,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       currency: auth.currency,
       paymentMethodId: _paymentMethodId!,
       paymentRef: _paymentRefController.text.trim(),
+      reference: _referenceController.text.trim(),
       promoCodeId: _promoResult?.valid == true ? _promoResult!.promoId : null,
       discountAmount: _promoResult?.valid == true ? _promoResult!.discountAmount : 0,
       paymentMethodName: selectedMethod?.name,
@@ -199,6 +208,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final cart = context.watch<CartProvider>();
+    final refProducts = cart.items.where((i) => i.product?.referenceRequired == true).toList();
+    final refRequired = refProducts.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -366,7 +377,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   style: TextStyle(color: AppColors.of(context).error, fontSize: 12),
                 ),
               ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 14),
 
             // Shipping Info
             _buildSectionTitle('Shipping Information'),
@@ -398,7 +409,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
+            _buildReferenceField(cart, refRequired, refProducts),
+            const SizedBox(height: 8),
             _buildTextField(
               controller: _emailController,
               label: 'Email Address (For Delivery)',
@@ -423,7 +436,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 14),
 
             // Payment Method
             _buildSectionTitle('Payment Method'),
@@ -447,10 +460,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 );
               }),
-            const SizedBox(height: 16),
+            const SizedBox(height: 4),
             _buildTextField(
               controller: _paymentRefController,
-              label: 'Transaction ID / Reference (10 digits)',
+              label: 'Transaction ID (10 digits)',
               hintText: '10-digit Trx ID',
               icon: Icons.receipt_long_outlined,
               inputFormatters: [
@@ -465,9 +478,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 6, 20, 10),
+          child:
 
-            // Place Order Button
+          // Place Order Button
             Consumer<OrderProvider>(
               builder: (context, orderProvider, _) {
                 return SizedBox(
@@ -502,10 +522,85 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 );
               },
             ),
-            const SizedBox(height: 40),
-          ],
+          ),
         ),
-      ),
+      // end bottom bar
+
+
+
+    );
+  }
+
+  Widget _buildReferenceField(CartProvider cart, bool refRequired, List refProducts) {
+    final c = AppColors.of(context);
+    // Collect admin hints from cart products (prefix with name when several)
+    final hinted = cart.items.where((i) => (i.product?.referenceHint ?? '').trim().isNotEmpty).toList();
+    String hint;
+    if (hinted.isEmpty) {
+      hint = 'Enter the info needed to deliver your order (e.g. your in-game name).';
+    } else if (hinted.length == 1) {
+      hint = hinted.first.product!.referenceHint!.trim();
+    } else {
+      hint = hinted.map((i) => '${i.product!.name}: ${i.product!.referenceHint!.trim()}').join('\n');
+    }
+    final focused = _referenceFocus.hasFocus;
+    final mixedForced = refRequired && cart.items.any((i) => i.product?.referenceRequired != true);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildTextField(
+          controller: _referenceController,
+          focusNode: _referenceFocus,
+          label: refRequired ? 'Reference / In-Game Name (required)' : 'Reference / In-Game Name (optional)',
+          icon: Icons.sports_esports_outlined,
+          inputFormatters: [LengthLimitingTextInputFormatter(100)],
+          validator: (v) {
+            if (refRequired && (v == null || v.trim().isEmpty)) {
+              return 'Reference is required for your cart';
+            }
+            return null;
+          },
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topCenter,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            transitionBuilder: (child, anim) => SlideTransition(
+              position: Tween<Offset>(begin: const Offset(0, -0.4), end: Offset.zero).animate(anim),
+              child: FadeTransition(opacity: anim, child: child),
+            ),
+            child: focused
+                ? Container(
+                    key: const ValueKey('ref-hint'),
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(top: 6),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: c.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: c.primary.withValues(alpha: 0.4)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.info_outline, size: 16, color: c.primary),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            mixedForced ? '$hint\n(Required because your cart has a product that needs it.)' : hint,
+                            style: TextStyle(color: c.textColor, fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(key: ValueKey('ref-none')),
+          ),
+        ),
+      ],
     );
   }
 
@@ -522,6 +617,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildTextField({
     required TextEditingController controller,
+    FocusNode? focusNode,
     required String label,
     required IconData icon,
     TextInputType? keyboardType,
@@ -532,6 +628,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }) {
     return TextFormField(
       controller: controller,
+      focusNode: focusNode,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       maxLines: maxLines,

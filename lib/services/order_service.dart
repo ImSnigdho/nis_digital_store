@@ -56,6 +56,7 @@ class OrderService {
     String? promoCodeId,
     double discountAmount = 0,
     String? paymentMethodName,
+    String? reference,
   }) async {
     double totalBdt = 0;
     double totalUsd = 0;
@@ -102,6 +103,9 @@ class OrderService {
           'customer_name': shippingAddress['name'],
           'delivery_email': shippingAddress['email'],
           'phone': shippingAddress['phone'],
+          'reference': (reference != null && reference.trim().isNotEmpty)
+              ? reference.trim()
+              : null,
           'discord_username': discordUsername,
           'promo_code_id': promoCodeId,
           'discount_amount': discountAmount,
