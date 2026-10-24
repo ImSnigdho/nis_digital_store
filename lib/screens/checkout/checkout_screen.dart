@@ -237,102 +237,109 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             // Order Summary
             _buildSectionTitle('Order Summary'),
             const SizedBox(height: 12),
-            ...cart.items.map((item) {
-              return Container(
-                margin: EdgeInsets.only(bottom: 8),
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.of(context).glassBg,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.of(context).glassBorder, width: 0.5),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${item.product?.name ?? 'Product'} x${item.quantity}',
-                        style: TextStyle(
-                          color: AppColors.of(context).textColor,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      CurrencyFormatter.format(
-                          item.totalPrice(auth.currency), auth.currency),
-                      style: TextStyle(
-                        color: AppColors.of(context).primary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-            if (_promoResult?.valid == true)
-              Container(
-                margin: EdgeInsets.only(top: 8),
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.of(context).success.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.of(context).success.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Promo Discount (${_promoCodeController.text})',
-                      style: TextStyle(
-                        color: AppColors.of(context).success,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      '-${CurrencyFormatter.format(_promoResult!.discountAmount, auth.currency)}',
-                      style: TextStyle(
-                        color: AppColors.of(context).success,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            const SizedBox(height: 12),
             Container(
-              padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.of(context).primary.withValues(alpha: 0.1),
-                    AppColors.of(context).accent.withValues(alpha: 0.1),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.of(context).glassBg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.of(context).glassBorder, width: 0.5),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
                 children: [
-                  Text(
-                    'Total',
-                    style: TextStyle(
-                      color: AppColors.of(context).textColor,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+                    child: Column(
+                      children: [
+                        ...cart.items.map((item) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 5),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '${item.product?.name ?? 'Product'} x${item.quantity}',
+                                    style: TextStyle(
+                                      color: AppColors.of(context).textColor,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  CurrencyFormatter.format(
+                                      item.totalPrice(auth.currency), auth.currency),
+                                  style: TextStyle(
+                                    color: AppColors.of(context).textColor,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                        if (_promoResult?.valid == true)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 5),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Promo Discount (${_promoCodeController.text})',
+                                  style: TextStyle(
+                                    color: AppColors.of(context).success,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  '-${CurrencyFormatter.format(_promoResult!.discountAmount, auth.currency)}',
+                                  style: TextStyle(
+                                    color: AppColors.of(context).success,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                  Text(
-                    CurrencyFormatter.format(
-                        cart.totalPrice(auth.currency) - (_promoResult?.valid == true ? _promoResult!.discountAmount : 0),
-                        auth.currency),
-                    style: TextStyle(
-                      color: AppColors.of(context).primary,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
+                  Divider(height: 1, thickness: 0.8, color: AppColors.of(context).glassBorder),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.of(context).primary.withValues(alpha: 0.1),
+                          AppColors.of(context).accent.withValues(alpha: 0.1),
+                        ],
+                      ),
+                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Total',
+                          style: TextStyle(
+                            color: AppColors.of(context).textColor,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          CurrencyFormatter.format(
+                              cart.totalPrice(auth.currency) - (_promoResult?.valid == true ? _promoResult!.discountAmount : 0),
+                              auth.currency),
+                          style: TextStyle(
+                            color: AppColors.of(context).primary,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -380,7 +387,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             const SizedBox(height: 14),
 
             // Shipping Info
-            _buildSectionTitle('Shipping Information'),
+            _buildSectionTitle('Delivery Information'),
             const SizedBox(height: 12),
             _buildTextField(
               controller: _nameController,
@@ -457,6 +464,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     method.name, 
                     'Send to: ${method.accountNumber}',
                     iconUrl: method.iconUrl,
+                    copyValue: method.accountNumber,
                   ),
                 );
               }),
@@ -646,7 +654,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildPaymentOption(
-      String methodId, String title, String subtitle, {String? iconUrl}) {
+      String methodId, String title, String subtitle, {String? iconUrl, String? copyValue}) {
     final isSelected = _paymentMethodId == methodId;
     return GestureDetector(
       onTap: () => setState(() => _paymentMethodId = methodId),
@@ -729,6 +737,43 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ],
               ),
             ),
+            if (copyValue != null && copyValue.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              Material(
+                color: AppColors.of(context).primary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(20),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () async {
+                    await Clipboard.setData(ClipboardData(text: copyValue));
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context)
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(SnackBar(
+                        content: Text('Number copied: $copyValue'),
+                        duration: const Duration(seconds: 2),
+                        backgroundColor: AppColors.of(context).success,
+                      ));
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.copy_rounded, size: 14, color: AppColors.of(context).primary),
+                        const SizedBox(width: 4),
+                        Text('Copy',
+                            style: TextStyle(
+                              color: AppColors.of(context).primary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            )),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

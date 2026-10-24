@@ -129,10 +129,10 @@ class CartScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 if (product != null && _isOnSale(product, auth.currency))
-                                  Wrap(
-                                    crossAxisAlignment: WrapCrossAlignment.center,
-                                    spacing: 8,
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
+                                      // price stack
                                       Text(
                                         CurrencyFormatter.format(
                                             product.getActivePrice(auth.currency),
@@ -143,18 +143,19 @@ class CartScreen extends StatelessWidget {
                                           fontWeight: FontWeight.w800,
                                         ),
                                       ),
+                                      const SizedBox(height: 2),
                                       Text(
                                         CurrencyFormatter.format(
                                             product.getPrice(auth.currency),
                                             auth.currency),
                                         style: TextStyle(
                                           color: AppColors.of(context)
-                                              .textSecondary
-                                              .withValues(alpha: 0.8),
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w400,
+                                              .textColor
+                                              .withValues(alpha: 0.6),
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
                                           decoration: TextDecoration.lineThrough,
-                                          decorationThickness: 2,
+                                          decorationThickness: 1.3,
                                         ),
                                       ),
                                     ],
