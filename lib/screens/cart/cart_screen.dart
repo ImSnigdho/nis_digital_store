@@ -75,7 +75,7 @@ class CartScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      'Explore top digital games, gift cards, and game items ready for instant delivery.',
+                      'Explore top digital games, gift cards, and game items.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: AppColors.of(context).textSecondary,
