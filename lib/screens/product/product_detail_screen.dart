@@ -7,8 +7,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/wishlist_provider.dart';
-import '../../services/product_service.dart';
 import '../../utils/currency_formatter.dart';
+
 
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
@@ -22,12 +22,10 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _selectedImageIndex = 0;
   int _quantity = 1;
-  late Future<int> _totalSoldFuture;
 
   @override
   void initState() {
     super.initState();
-    _totalSoldFuture = ProductService().getTotalSold(widget.productId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductProvider>().selectProduct(widget.productId);
     });
@@ -188,38 +186,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                           const SizedBox(height: 12),
 
-                          // Stock & Sold Info
-                          FutureBuilder<int>(
-                            future: _totalSoldFuture,
-                            builder: (context, snapshot) {
-                              return Row(
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: product.stock > 0 ? AppColors.of(context).success.withValues(alpha: 0.1) : AppColors.of(context).error.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      product.stock > 0 ? '${product.stock} in stock' : 'Out of stock',
-                                      style: TextStyle(
-                                        color: product.stock > 0 ? AppColors.of(context).success : AppColors.of(context).error,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
+                          // Stock badge (sales counter removed)
+                          Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: product.stock > 0 ? AppColors.of(context).success.withValues(alpha: 0.1) : AppColors.of(context).error.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  product.stock > 0 ? '${product.stock} in stock' : 'Out of stock',
+                                  style: TextStyle(
+                                    color: product.stock > 0 ? AppColors.of(context).success : AppColors.of(context).error,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    '${snapshot.data ?? 0} sold',
-                                    style: TextStyle(
-                                      color: AppColors.of(context).textSecondary,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 16),
 
@@ -276,32 +261,46 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                           const SizedBox(height: 8),
 
-                          // Stock status
-                          Row(
-                            children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
+                          // Delivery time frame (replaces the old stock line)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: (product.inStock
+                                      ? AppColors.of(context).primary
+                                      : AppColors.of(context).error)
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  product.inStock
+                                      ? Icons.schedule
+                                      : Icons.remove_shopping_cart_outlined,
+                                  size: 16,
                                   color: product.inStock
-                                      ? AppColors.of(context).success
+                                      ? AppColors.of(context).primary
                                       : AppColors.of(context).error,
-                                  shape: BoxShape.circle,
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                product.inStock
-                                    ? 'In Stock (${product.stock} available)'
-                                    : 'Out of Stock',
-                                style: TextStyle(
-                                  color: product.inStock
-                                      ? AppColors.of(context).success
-                                      : AppColors.of(context).error,
-                                  fontSize: 14,
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    product.inStock
+                                        ? 'Delivery via email: 1 to 4 hours'
+                                        : 'Currently out of stock',
+                                    style: TextStyle(
+                                      color: product.inStock
+                                          ? AppColors.of(context).textColor
+                                          : AppColors.of(context).error,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 24),
 
