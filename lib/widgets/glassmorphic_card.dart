@@ -12,6 +12,9 @@ class GlassmorphicCard extends StatelessWidget {
   final double borderOpacity;
   final VoidCallback? onTap;
 
+  final double? width;
+  final double? height;
+
   const GlassmorphicCard({
     super.key,
     required this.child,
@@ -22,11 +25,15 @@ class GlassmorphicCard extends StatelessWidget {
     this.color,
     this.borderOpacity = 0.2,
     this.onTap,
+    this.width,
+    this.height,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: width,
+      height: height,
       margin: margin,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
@@ -36,6 +43,8 @@ class GlassmorphicCard extends StatelessWidget {
             onTap: onTap,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
+              width: width,
+              height: height,
               padding: padding ?? EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: color ?? AppColors.of(context).glassBg,

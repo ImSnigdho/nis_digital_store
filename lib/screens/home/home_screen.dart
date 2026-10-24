@@ -206,40 +206,41 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
               ),
-            ),
-
-            // Categories
+            ),            // Categories
             SliverToBoxAdapter(
               child: Consumer<ProductProvider>(
                 builder: (context, productProvider, _) {
-                  return SizedBox(
-                    height: 56,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                      children: [
-                        CategoryChip(
-                          label: 'All',
-                          icon: '🔥',
-                          isSelected:
-                              productProvider.selectedCategoryId == null,
-                          onTap: () => productProvider.setCategory(null),
-                        ),
-                        const SizedBox(width: 8),
-                        ...productProvider.categories.map((cat) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: CategoryChip(
-                              label: cat.name,
-                              icon: cat.icon,
-                              isSelected: productProvider.selectedCategoryId ==
-                                  cat.id,
-                              onTap: () =>
-                                  productProvider.setCategory(cat.id),
-                            ),
-                          );
-                        }),
-                      ],
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    child: SizedBox(
+                      height: 44,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        children: [
+                          CategoryChip(
+                            label: 'All',
+                            icon: '🔥',
+                            isSelected:
+                                productProvider.selectedCategoryId == null,
+                            onTap: () => productProvider.setCategory(null),
+                          ),
+                          const SizedBox(width: 8),
+                          ...productProvider.categories.map((cat) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: CategoryChip(
+                                label: cat.name,
+                                icon: cat.icon,
+                                isSelected: productProvider.selectedCategoryId ==
+                                    cat.id,
+                                onTap: () =>
+                                    productProvider.setCategory(cat.id),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -257,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: EdgeInsets.fromLTRB(20, 24, 20, 12),
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
                         child: Text(
                           '⭐ Featured Products',
                           style: TextStyle(

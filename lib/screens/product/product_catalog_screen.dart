@@ -70,31 +70,34 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
           SliverToBoxAdapter(
             child: Consumer<ProductProvider>(
               builder: (context, productProvider, _) {
-                return SizedBox(
-                  height: 56,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    children: [
-                      CategoryChip(
-                        label: 'All',
-                        icon: '🔥',
-                        isSelected: productProvider.selectedCategoryId == null,
-                        onTap: () => productProvider.setCategory(null),
-                      ),
-                      const SizedBox(width: 8),
-                      ...productProvider.categories.map((cat) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: CategoryChip(
-                            label: cat.name,
-                            icon: cat.icon,
-                            isSelected: productProvider.selectedCategoryId == cat.id,
-                            onTap: () => productProvider.setCategory(cat.id),
-                          ),
-                        );
-                      }),
-                    ],
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: SizedBox(
+                    height: 44,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      children: [
+                        CategoryChip(
+                          label: 'All',
+                          icon: '🔥',
+                          isSelected: productProvider.selectedCategoryId == null,
+                          onTap: () => productProvider.setCategory(null),
+                        ),
+                        const SizedBox(width: 8),
+                        ...productProvider.categories.map((cat) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: CategoryChip(
+                              label: cat.name,
+                              icon: cat.icon,
+                              isSelected: productProvider.selectedCategoryId == cat.id,
+                              onTap: () => productProvider.setCategory(cat.id),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
                   ),
                 );
               },

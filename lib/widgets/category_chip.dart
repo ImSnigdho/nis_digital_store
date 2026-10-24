@@ -39,7 +39,7 @@ class _CategoryChipState extends State<CategoryChip> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
           transform: Matrix4.diagonal3Values(scale, scale, 1.0),
           alignment: FractionalOffset.center,
           decoration: BoxDecoration(
