@@ -10,7 +10,7 @@
   [![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
   [![Supabase](https://img.shields.io/badge/Supabase-Database%20%26%20Auth-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
   [![Android](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://android.com)
-  [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+  [![License](https://img.shields.io/badge/License-Proprietary-red.svg?style=for-the-badge)](LICENSE)
 
   <p align="center">
     <a href="#-features">Features</a> •
@@ -158,9 +158,11 @@ build/app/outputs/flutter-apk/app-release.apk
 
 ---
 
-## 📄 License
+## 📄 License & Copyright
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Copyright © 2026 **Nowrid Ifrad Snigdho**. All Rights Reserved.
+
+This project and its source code are proprietary. Unauthorized copying, modification, redistribution, or publishing of this software under another name is strictly prohibited. See the [LICENSE](LICENSE) file for details.
 
 ---
 
