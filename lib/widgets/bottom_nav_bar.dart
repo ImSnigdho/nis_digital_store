@@ -63,6 +63,7 @@ class CustomBottomNavBar extends StatelessWidget {
 
     if (badgeCount > 0) {
       iconWidget = badges.Badge(
+        position: badges.BadgePosition.topEnd(top: -10, end: -12),
         badgeContent: Text(
           badgeCount.toString(),
           style: const TextStyle(color: Colors.white, fontSize: 10),

@@ -5,6 +5,7 @@ import '../../widgets/app_network_image.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../models/product.dart';
 import '../../utils/currency_formatter.dart';
 import '../checkout/checkout_screen.dart';
 import '../../utils/smooth_page_route.dart';
@@ -69,7 +70,7 @@ class CartScreen extends StatelessWidget {
           return Stack(
             children: [
               ListView.builder(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 200),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 300),
                 itemCount: cart.items.length,
                 itemBuilder: (context, index) {
                   final item = cart.items[index];
@@ -127,18 +128,50 @@ class CartScreen extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 4),
-                                Text(
-                                  product != null
-                                      ? CurrencyFormatter.format(
-                                          product.getPrice(auth.currency),
-                                          auth.currency)
-                                      : '',
-                                  style: TextStyle(
-                                    color: AppColors.of(context).primary,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
+                                if (product != null && _isOnSale(product, auth.currency))
+                                  Wrap(
+                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    spacing: 8,
+                                    children: [
+                                      Text(
+                                        CurrencyFormatter.format(
+                                            product.getActivePrice(auth.currency),
+                                            auth.currency),
+                                        style: TextStyle(
+                                          color: AppColors.of(context).primary,
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                      Text(
+                                        CurrencyFormatter.format(
+                                            product.getPrice(auth.currency),
+                                            auth.currency),
+                                        style: TextStyle(
+                                          color: AppColors.of(context)
+                                              .textSecondary
+                                              .withValues(alpha: 0.8),
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w400,
+                                          decoration: TextDecoration.lineThrough,
+                                          decorationThickness: 2,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                else
+                                  Text(
+                                    product != null
+                                        ? CurrencyFormatter.format(
+                                            product.getPrice(auth.currency),
+                                            auth.currency)
+                                        : '',
+                                    style: TextStyle(
+                                      color: AppColors.of(context).primary,
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
-                                ),
                                 const SizedBox(height: 8),
                                 // Quantity controls
                                 Row(
@@ -211,71 +244,155 @@ class CartScreen extends StatelessWidget {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Total',
-                                    style: TextStyle(
-                                      color: AppColors.of(context).textSecondary,
-                                      fontSize: 14,
+                          Builder(builder: (context) {
+                            final c = AppColors.of(context);
+                            final total = cart.totalPrice(auth.currency);
+                            final subtotal = cart.items.fold<double>(
+                                0,
+                                (s, i) =>
+                                    s +
+                                    (i.product?.getPrice(auth.currency) ?? 0) *
+                                        i.quantity);
+                            final savings = subtotal - total;
+                            final hasSavings = savings > 0.009;
+                            final ctaColor = HSLColor.fromColor(c.primary)
+                                .withLightness(
+                                    (HSLColor.fromColor(c.primary).lightness -
+                                            0.12)
+                                        .clamp(0.0, 1.0))
+                                .withSaturation(
+                                    (HSLColor.fromColor(c.primary).saturation +
+                                            0.1)
+                                        .clamp(0.0, 1.0))
+                                .toColor();
+
+                            Widget line(String label, String value,
+                                {Color? color}) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(label,
+                                        style: TextStyle(
+                                            color: c.textSecondary,
+                                            fontSize: 13)),
+                                    Text(value,
+                                        style: TextStyle(
+                                            color: color ?? c.textColor,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600)),
+                                  ],
+                                ),
+                              );
+                            }
+
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (hasSavings) ...[
+                                  Container(
+                                    width: double.infinity,
+                                    margin: const EdgeInsets.only(bottom: 10),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: c.success.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.local_offer,
+                                            size: 16, color: c.success),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'You save: ${CurrencyFormatter.format(savings, auth.currency)}',
+                                          style: TextStyle(
+                                            color: c.success,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    CurrencyFormatter.format(
-                                        cart.totalPrice(auth.currency),
-                                        auth.currency),
-                                    style: TextStyle(
-                                      color: AppColors.of(context).textColor,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w800,
+                                  line('Subtotal (${cart.itemCount} items)',
+                                      CurrencyFormatter.format(
+                                          subtotal, auth.currency)),
+                                  line('Discount',
+                                      '-${CurrencyFormatter.format(savings, auth.currency)}',
+                                      color: c.success),
+                                ] else
+                                  line('Subtotal (${cart.itemCount} items)',
+                                      CurrencyFormatter.format(
+                                          subtotal, auth.currency)),
+                                Divider(
+                                    height: 12,
+                                    color: c.glassBorder,
+                                    thickness: 0.8),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('Total',
+                                        style: TextStyle(
+                                          color: c.textColor,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        )),
+                                    Text(
+                                      CurrencyFormatter.format(
+                                          total, auth.currency),
+                                      style: TextStyle(
+                                        color: c.textColor,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 52,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        SmoothPageRoute(
+                                          page: const CheckoutScreen(),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: ctaColor,
+                                      foregroundColor: Colors.white,
+                                      elevation: 4,
+                                      shadowColor:
+                                          ctaColor.withValues(alpha: 0.5),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                    ),
+                                    child: const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          'Proceed to Checkout',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        SizedBox(width: 8),
+                                        Icon(Icons.arrow_forward, size: 20),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
-                              Text(
-                                '${cart.itemCount} items',
-                                style: TextStyle(
-                                  color: AppColors.of(context).textSecondary,
-                                  fontSize: 14,
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  SmoothPageRoute(
-                                    page: const CheckoutScreen(),
-                                  ),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.of(context).primary,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: const Text(
-                                'Proceed to Checkout',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
+                              ],
+                            );
+                          }),
                         ],
                       ),
                     ),
@@ -287,6 +404,13 @@ class CartScreen extends StatelessWidget {
         },
       ),
     );
+  }
+
+  /// True when the product has a valid sale price lower than its base price
+  /// for the given currency.
+  static bool _isOnSale(Product p, String currency) {
+    final sale = p.getSalePrice(currency);
+    return sale != null && sale > 0 && sale < p.getPrice(currency);
   }
 
   Widget _buildQtyButton(BuildContext context,
