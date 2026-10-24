@@ -9,6 +9,8 @@ import '../../screens/auth/login_screen.dart';
 import '../../screens/orders/order_history_screen.dart';
 import '../../widgets/app_network_image.dart';
 import 'edit_profile_screen.dart';
+import 'about_screen.dart';
+import 'support_screen.dart';
 import '../../utils/smooth_page_route.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -402,10 +404,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildMenuItem(
                 context: context,
                 isLight: !themeProvider.isDarkMode,
+                icon: Icons.headset_mic_outlined,
+                title: 'Support',
+                subtitle: 'Order help, community & direct contact',
+                onTap: () {
+                  Navigator.of(context).push(
+                    SmoothPageRoute(page: const SupportScreen()),
+                  );
+                },
+              ),
+              _buildMenuItem(
+                context: context,
+                isLight: !themeProvider.isDarkMode,
                 icon: Icons.info_outline,
                 title: 'About',
                 subtitle: 'NIS Digital Store v1.0.0',
-                onTap: () {},
+                onTap: () {
+                  Navigator.of(context).push(
+                    SmoothPageRoute(page: const AboutScreen()),
+                  );
+                },
               ),
               const SizedBox(height: 28),
 
@@ -511,48 +529,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(16),
-        decoration: GlassDecoration(context: context),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.of(context).primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: AppColors.of(context).primary, size: 20),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.headlineLarge?.color,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: GlassDecoration(context: context),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.of(context).primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                      fontSize: 12,
-                    ),
+                  child: Icon(icon, color: AppColors.of(context).primary, size: 20),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.headlineLarge?.color,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                Icon(Icons.chevron_right, color: AppColors.of(context).textSecondary, size: 20),
+              ],
             ),
-            Icon(Icons.chevron_right, color: AppColors.of(context).textSecondary, size: 20),
-          ],
+          ),
         ),
       ),
     );
