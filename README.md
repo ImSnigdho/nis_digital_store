@@ -18,7 +18,8 @@
     <a href="#-getting-started">Getting Started</a> •
     <a href="#-environment-setup">Environment Setup</a> •
     <a href="#-building-release-apk">Building Release</a> •
-    <a href="#-security">Security</a>
+    <a href="#-security">Security</a> •
+    <a href="PRIVACY_POLICY.md">Privacy Policy</a>
   </p>
 
 </div>
